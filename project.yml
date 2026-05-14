@@ -1,0 +1,100 @@
+name: PanicGuard
+options:
+  bundleIdPrefix: com.panicguard
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+  xcodeVersion: "15.0"
+  groupSortPosition: top
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: "panic-guard"
+
+targets:
+
+  # ── iOS App ──────────────────────────────────────────────────────────────
+  PanicGuard:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PanicGuard
+    info:
+      path: PanicGuard/App/Info.plist
+      properties:
+        CFBundleDisplayName: PanicGuard
+        UILaunchStoryboardName: LaunchScreen
+        NSHealthShareUsageDescription: "PanicGuard reads heart rate to detect panic episodes."
+        NSHealthUpdateUsageDescription: "PanicGuard writes episode records to your health data."
+        NSMicrophoneUsageDescription: "PanicGuard records your voice to analyze the Vocal Anchor."
+        NSSpeechRecognitionUsageDescription: "PanicGuard transcribes your Vocal Anchor response on-device."
+        UIBackgroundModes:
+          - audio
+          - fetch
+          - processing
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.panicguard.hrsample
+    entitlements:
+      path: PanicGuard/App/PanicGuard.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access:
+          - health-records
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.app
+        INFOPLIST_FILE: PanicGuard/App/Info.plist
+    dependencies:
+      - target: PanicGuardWatchApp
+
+  # ── watchOS Watch App ─────────────────────────────────────────────────────
+  PanicGuardWatchApp:
+    type: application
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: PanicGuardWatch
+    info:
+      path: PanicGuardWatch/App/Info.plist
+      properties:
+        CFBundleDisplayName: PanicGuard
+        WKWatchKitApp: true
+        NSHealthShareUsageDescription: "PanicGuard reads heart rate to detect panic episodes."
+        NSHealthUpdateUsageDescription: "PanicGuard writes episode records to your health data."
+    entitlements:
+      path: PanicGuardWatch/App/PanicGuardWatch.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.watchapp
+        INFOPLIST_FILE: PanicGuardWatch/App/Info.plist
+
+  # ── iOS Unit Tests ────────────────────────────────────────────────────────
+  PanicGuardTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PanicGuardTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.tests
+    dependencies:
+      - target: PanicGuard
+
+  # ── watchOS Unit Tests ────────────────────────────────────────────────────
+  PanicGuardWatchTests:
+    type: bundle.unit-test
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: PanicGuardWatchTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.watchtests
+    dependencies:
+      - target: PanicGuardWatchApp

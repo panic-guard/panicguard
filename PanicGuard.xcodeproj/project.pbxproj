@@ -1,0 +1,757 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0267F252BEF6993E28B8CAA9 /* GemmaAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B95B8C9EF055A3F0CE4B955 /* GemmaAgent.swift */; };
+		10CD9F34A9B7EE90C454CDE4 /* PanicGuardWatchApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E1D842018C97D888F1BC000D /* PanicGuardWatchApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		29B82AEA8A8C0A16BEA464CA /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381C24377E6682F578E43DF3 /* AppState.swift */; };
+		2C44E7D61FC5DCDAE9E5CD00 /* PanicGuardWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0A52D1E5774D1EFF6320E4 /* PanicGuardWatchApp.swift */; };
+		2FC39887BB51AAD0325F4FF5 /* VocalAnchorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */; };
+		34FFF7ED85CDBEC1C6C2D06E /* HRSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5151EC93911ACB391C38E390 /* HRSampler.swift */; };
+		37699BD14C4ABE48FF59146A /* WatchingGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D740101B5F3071BEA492F3C0 /* WatchingGuardTests.swift */; };
+		421B5D858E5F268AE1E90F38 /* RuleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E03FBFA69C68890A885BB00F /* RuleEngine.swift */; };
+		445AB0827A90BF852CFF18B2 /* WatchingGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD068CB1E7A9BE7308E10B8E /* WatchingGuard.swift */; };
+		44E75A1637DF1D556912C7E8 /* RuleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A309D06331F90619343F06 /* RuleEngineTests.swift */; };
+		53333A62C5491BCF43B66FB0 /* AppStateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABA37CE50A637928523ABAC /* AppStateController.swift */; };
+		543439C3C96AE91E8181587A /* UserProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EA67BECE2FF1AB99E9261 /* UserProfileStore.swift */; };
+		5633F2D03730DDDDD2690B9A /* HRFeatureExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CCF693589C7D984B62C33B5 /* HRFeatureExtractorTests.swift */; };
+		905CE46D8D3ECC70AFDCF93E /* EpisodeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A9B63D6ADD13B941B7D4E5 /* EpisodeStore.swift */; };
+		9229445530BD7AD2A4DD090F /* WatchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2933D4EFF8CFE52F2093CFCC /* WatchRootView.swift */; };
+		A1707DB839E1BA90F99F6179 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1DBF9B1768E8B2168575E3 /* ContentView.swift */; };
+		A77CB41CE3264F63BEBA4511 /* WatchConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DEC7EFDFBD80792E3B30220 /* WatchConnector.swift */; };
+		C0683158D95EEE8D9EA7DE2F /* AgentProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3487552BF5B5180436E9C0 /* AgentProtocols.swift */; };
+		C1FA5B842F99979F4AF948E1 /* PanicGuardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FBD0CC16C1C05C93B4F5C84 /* PanicGuardApp.swift */; };
+		C83C4C53DE270095F45F63FF /* HRFeatureExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 404984A518D76EDDF43DC40F /* HRFeatureExtractor.swift */; };
+		E52153BB0567A76B138EDBAF /* HRSamplerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 421E31A126239B2304776A3B /* HRSamplerTests.swift */; };
+		EC913110A7B93D84C53535F2 /* AppStateControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D86221EC0C955FEBDADE4 /* AppStateControllerTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2C19A36997643C040D3A06E8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B7C644951A31894971711213 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0FB37E9F53D606689DFCDB0F;
+			remoteInfo = PanicGuardWatchApp;
+		};
+		DE3DE30DB23FAB7899F4945D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B7C644951A31894971711213 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0FB37E9F53D606689DFCDB0F;
+			remoteInfo = PanicGuardWatchApp;
+		};
+		EAEE79463671069B9C479F1D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B7C644951A31894971711213 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BE2F5742533C6C6900EE8504;
+			remoteInfo = PanicGuard;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6CB3BBEDCBD6ACD73308C987 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				10CD9F34A9B7EE90C454CDE4 /* PanicGuardWatchApp.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		03A309D06331F90619343F06 /* RuleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngineTests.swift; sourceTree = "<group>"; };
+		0471C253A080BD281842B19D /* PanicGuardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PanicGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C1D86221EC0C955FEBDADE4 /* AppStateControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateControllerTests.swift; sourceTree = "<group>"; };
+		1BD645831C1BC3E92E70F6BA /* PanicGuardWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PanicGuardWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2933D4EFF8CFE52F2093CFCC /* WatchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRootView.swift; sourceTree = "<group>"; };
+		2B95B8C9EF055A3F0CE4B955 /* GemmaAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgent.swift; sourceTree = "<group>"; };
+		2DEC7EFDFBD80792E3B30220 /* WatchConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnector.swift; sourceTree = "<group>"; };
+		2FBD0CC16C1C05C93B4F5C84 /* PanicGuardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicGuardApp.swift; sourceTree = "<group>"; };
+		356EA67BECE2FF1AB99E9261 /* UserProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileStore.swift; sourceTree = "<group>"; };
+		381C24377E6682F578E43DF3 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		3CCF693589C7D984B62C33B5 /* HRFeatureExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRFeatureExtractorTests.swift; sourceTree = "<group>"; };
+		404984A518D76EDDF43DC40F /* HRFeatureExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRFeatureExtractor.swift; sourceTree = "<group>"; };
+		421E31A126239B2304776A3B /* HRSamplerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRSamplerTests.swift; sourceTree = "<group>"; };
+		46B2D1EB72D7E3464D31A964 /* PanicGuard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PanicGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B3487552BF5B5180436E9C0 /* AgentProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProtocols.swift; sourceTree = "<group>"; };
+		4F0A52D1E5774D1EFF6320E4 /* PanicGuardWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicGuardWatchApp.swift; sourceTree = "<group>"; };
+		5151EC93911ACB391C38E390 /* HRSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRSampler.swift; sourceTree = "<group>"; };
+		640EC778D925DDC069EA1972 /* PanicGuardWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PanicGuardWatch.entitlements; sourceTree = "<group>"; };
+		7192692213DDE2CFF750445F /* PanicGuard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PanicGuard.entitlements; sourceTree = "<group>"; };
+		7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocalAnchorManager.swift; sourceTree = "<group>"; };
+		B78201F641E0685D7C9A9AD4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C4A9B63D6ADD13B941B7D4E5 /* EpisodeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStore.swift; sourceTree = "<group>"; };
+		D740101B5F3071BEA492F3C0 /* WatchingGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchingGuardTests.swift; sourceTree = "<group>"; };
+		E03FBFA69C68890A885BB00F /* RuleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngine.swift; sourceTree = "<group>"; };
+		E1D842018C97D888F1BC000D /* PanicGuardWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PanicGuardWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EABA37CE50A637928523ABAC /* AppStateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateController.swift; sourceTree = "<group>"; };
+		FCB68486400B47D3D591315E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		FD068CB1E7A9BE7308E10B8E /* WatchingGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchingGuard.swift; sourceTree = "<group>"; };
+		FF1DBF9B1768E8B2168575E3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		004B12D23FA659A95486C275 /* PanicGuardTests */ = {
+			isa = PBXGroup;
+			children = (
+				0C1D86221EC0C955FEBDADE4 /* AppStateControllerTests.swift */,
+				3CCF693589C7D984B62C33B5 /* HRFeatureExtractorTests.swift */,
+				03A309D06331F90619343F06 /* RuleEngineTests.swift */,
+				D740101B5F3071BEA492F3C0 /* WatchingGuardTests.swift */,
+			);
+			path = PanicGuardTests;
+			sourceTree = "<group>";
+		};
+		0E7ECF930EF9D4F1BCE2CD21 /* Agent */ = {
+			isa = PBXGroup;
+			children = (
+				4B3487552BF5B5180436E9C0 /* AgentProtocols.swift */,
+				2B95B8C9EF055A3F0CE4B955 /* GemmaAgent.swift */,
+				404984A518D76EDDF43DC40F /* HRFeatureExtractor.swift */,
+				7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */,
+			);
+			path = Agent;
+			sourceTree = "<group>";
+		};
+		15E77B63AC16A046F85F0A5A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FCB68486400B47D3D591315E /* Info.plist */,
+				640EC778D925DDC069EA1972 /* PanicGuardWatch.entitlements */,
+				4F0A52D1E5774D1EFF6320E4 /* PanicGuardWatchApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		2019186D0D8F6621E272E68A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				B78201F641E0685D7C9A9AD4 /* Info.plist */,
+				7192692213DDE2CFF750445F /* PanicGuard.entitlements */,
+				2FBD0CC16C1C05C93B4F5C84 /* PanicGuardApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		3CCA8F2E3F3DECCD300EABF5 /* PanicGuardWatch */ = {
+			isa = PBXGroup;
+			children = (
+				15E77B63AC16A046F85F0A5A /* App */,
+				4DE0A618BDD700987AD44157 /* Domain */,
+				8B45FFEE72084C3F4C3D03BA /* UI */,
+			);
+			path = PanicGuardWatch;
+			sourceTree = "<group>";
+		};
+		4709E03E4FF9B3B28E4E6290 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				FF1DBF9B1768E8B2168575E3 /* ContentView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		4ACC1184FC6A72067FF1D3DC /* PanicGuardWatchTests */ = {
+			isa = PBXGroup;
+			children = (
+				421E31A126239B2304776A3B /* HRSamplerTests.swift */,
+			);
+			path = PanicGuardWatchTests;
+			sourceTree = "<group>";
+		};
+		4DE0A618BDD700987AD44157 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				5151EC93911ACB391C38E390 /* HRSampler.swift */,
+				2DEC7EFDFBD80792E3B30220 /* WatchConnector.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		5192AEB4BBB2380F3C0A6EEF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				46B2D1EB72D7E3464D31A964 /* PanicGuard.app */,
+				0471C253A080BD281842B19D /* PanicGuardTests.xctest */,
+				E1D842018C97D888F1BC000D /* PanicGuardWatchApp.app */,
+				1BD645831C1BC3E92E70F6BA /* PanicGuardWatchTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		767D3FDE83E4E048A1C9320B /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				C4A9B63D6ADD13B941B7D4E5 /* EpisodeStore.swift */,
+				356EA67BECE2FF1AB99E9261 /* UserProfileStore.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		8B45FFEE72084C3F4C3D03BA /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				2933D4EFF8CFE52F2093CFCC /* WatchRootView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		AE9459F9B2CA64E051A51E43 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				0E7ECF930EF9D4F1BCE2CD21 /* Agent */,
+				FB8CB5786370D1434FEEBEBB /* Rules */,
+				CD4A0BA7B20B325B03DF9A5E /* StateMachine */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		BD5C9BA8C35F298A5536B980 /* PanicGuard */ = {
+			isa = PBXGroup;
+			children = (
+				2019186D0D8F6621E272E68A /* App */,
+				767D3FDE83E4E048A1C9320B /* Data */,
+				AE9459F9B2CA64E051A51E43 /* Domain */,
+				4709E03E4FF9B3B28E4E6290 /* UI */,
+			);
+			path = PanicGuard;
+			sourceTree = "<group>";
+		};
+		CD4A0BA7B20B325B03DF9A5E /* StateMachine */ = {
+			isa = PBXGroup;
+			children = (
+				381C24377E6682F578E43DF3 /* AppState.swift */,
+				EABA37CE50A637928523ABAC /* AppStateController.swift */,
+			);
+			path = StateMachine;
+			sourceTree = "<group>";
+		};
+		F7450303AB6A49058B89E274 = {
+			isa = PBXGroup;
+			children = (
+				BD5C9BA8C35F298A5536B980 /* PanicGuard */,
+				004B12D23FA659A95486C275 /* PanicGuardTests */,
+				3CCA8F2E3F3DECCD300EABF5 /* PanicGuardWatch */,
+				4ACC1184FC6A72067FF1D3DC /* PanicGuardWatchTests */,
+				5192AEB4BBB2380F3C0A6EEF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FB8CB5786370D1434FEEBEBB /* Rules */ = {
+			isa = PBXGroup;
+			children = (
+				E03FBFA69C68890A885BB00F /* RuleEngine.swift */,
+				FD068CB1E7A9BE7308E10B8E /* WatchingGuard.swift */,
+			);
+			path = Rules;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0FB37E9F53D606689DFCDB0F /* PanicGuardWatchApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1E6F481FEEE8A1256F3161FF /* Build configuration list for PBXNativeTarget "PanicGuardWatchApp" */;
+			buildPhases = (
+				53202F8D08C65E364D021D59 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PanicGuardWatchApp;
+			packageProductDependencies = (
+			);
+			productName = PanicGuardWatchApp;
+			productReference = E1D842018C97D888F1BC000D /* PanicGuardWatchApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9ABA46772BD263C40EB7F391 /* PanicGuardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2006E89CA3E728FB888B2312 /* Build configuration list for PBXNativeTarget "PanicGuardTests" */;
+			buildPhases = (
+				3F62D009227698D1A0101E10 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				006594AFBB95A682256431BF /* PBXTargetDependency */,
+			);
+			name = PanicGuardTests;
+			packageProductDependencies = (
+			);
+			productName = PanicGuardTests;
+			productReference = 0471C253A080BD281842B19D /* PanicGuardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BE2F5742533C6C6900EE8504 /* PanicGuard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2764BD104F0E320F563BFFBA /* Build configuration list for PBXNativeTarget "PanicGuard" */;
+			buildPhases = (
+				2B0248A3336C24E7229F6153 /* Sources */,
+				6CB3BBEDCBD6ACD73308C987 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				485AC4B18F534D85812448E5 /* PBXTargetDependency */,
+			);
+			name = PanicGuard;
+			packageProductDependencies = (
+			);
+			productName = PanicGuard;
+			productReference = 46B2D1EB72D7E3464D31A964 /* PanicGuard.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C43B66CC6A4E33BD2CFA3BB1 /* PanicGuardWatchTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 99E4FBCA53FA1C74005A8F53 /* Build configuration list for PBXNativeTarget "PanicGuardWatchTests" */;
+			buildPhases = (
+				263FEB28C2B60AD40213CE7E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B03E524F8D805A0AC3622F11 /* PBXTargetDependency */,
+			);
+			name = PanicGuardWatchTests;
+			packageProductDependencies = (
+			);
+			productName = PanicGuardWatchTests;
+			productReference = 1BD645831C1BC3E92E70F6BA /* PanicGuardWatchTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B7C644951A31894971711213 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					0FB37E9F53D606689DFCDB0F = {
+						DevelopmentTeam = "panic-guard";
+					};
+					9ABA46772BD263C40EB7F391 = {
+						DevelopmentTeam = "panic-guard";
+					};
+					BE2F5742533C6C6900EE8504 = {
+						DevelopmentTeam = "panic-guard";
+					};
+					C43B66CC6A4E33BD2CFA3BB1 = {
+						DevelopmentTeam = "panic-guard";
+					};
+				};
+			};
+			buildConfigurationList = 0B7A6531E4EEF18EB4B441E1 /* Build configuration list for PBXProject "PanicGuard" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F7450303AB6A49058B89E274;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5192AEB4BBB2380F3C0A6EEF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BE2F5742533C6C6900EE8504 /* PanicGuard */,
+				9ABA46772BD263C40EB7F391 /* PanicGuardTests */,
+				0FB37E9F53D606689DFCDB0F /* PanicGuardWatchApp */,
+				C43B66CC6A4E33BD2CFA3BB1 /* PanicGuardWatchTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		263FEB28C2B60AD40213CE7E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E52153BB0567A76B138EDBAF /* HRSamplerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2B0248A3336C24E7229F6153 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0683158D95EEE8D9EA7DE2F /* AgentProtocols.swift in Sources */,
+				29B82AEA8A8C0A16BEA464CA /* AppState.swift in Sources */,
+				53333A62C5491BCF43B66FB0 /* AppStateController.swift in Sources */,
+				A1707DB839E1BA90F99F6179 /* ContentView.swift in Sources */,
+				905CE46D8D3ECC70AFDCF93E /* EpisodeStore.swift in Sources */,
+				0267F252BEF6993E28B8CAA9 /* GemmaAgent.swift in Sources */,
+				C83C4C53DE270095F45F63FF /* HRFeatureExtractor.swift in Sources */,
+				C1FA5B842F99979F4AF948E1 /* PanicGuardApp.swift in Sources */,
+				421B5D858E5F268AE1E90F38 /* RuleEngine.swift in Sources */,
+				543439C3C96AE91E8181587A /* UserProfileStore.swift in Sources */,
+				2FC39887BB51AAD0325F4FF5 /* VocalAnchorManager.swift in Sources */,
+				445AB0827A90BF852CFF18B2 /* WatchingGuard.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3F62D009227698D1A0101E10 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EC913110A7B93D84C53535F2 /* AppStateControllerTests.swift in Sources */,
+				5633F2D03730DDDDD2690B9A /* HRFeatureExtractorTests.swift in Sources */,
+				44E75A1637DF1D556912C7E8 /* RuleEngineTests.swift in Sources */,
+				37699BD14C4ABE48FF59146A /* WatchingGuardTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		53202F8D08C65E364D021D59 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34FFF7ED85CDBEC1C6C2D06E /* HRSampler.swift in Sources */,
+				2C44E7D61FC5DCDAE9E5CD00 /* PanicGuardWatchApp.swift in Sources */,
+				A77CB41CE3264F63BEBA4511 /* WatchConnector.swift in Sources */,
+				9229445530BD7AD2A4DD090F /* WatchRootView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		006594AFBB95A682256431BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BE2F5742533C6C6900EE8504 /* PanicGuard */;
+			targetProxy = EAEE79463671069B9C479F1D /* PBXContainerItemProxy */;
+		};
+		485AC4B18F534D85812448E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0FB37E9F53D606689DFCDB0F /* PanicGuardWatchApp */;
+			targetProxy = 2C19A36997643C040D3A06E8 /* PBXContainerItemProxy */;
+		};
+		B03E524F8D805A0AC3622F11 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0FB37E9F53D606689DFCDB0F /* PanicGuardWatchApp */;
+			targetProxy = DE3DE30DB23FAB7899F4945D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0C2B29008B30E8B3ED2A973B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PanicGuardWatch/App/PanicGuardWatch.entitlements;
+				INFOPLIST_FILE = PanicGuardWatch/App/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.watchapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		0DE355C2745B8D297F884B9E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.watchtests;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PanicGuardWatchApp.app/PanicGuardWatchApp";
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		6C2B52952D7E858B76E26907 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PanicGuard/App/PanicGuard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = PanicGuard/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		72C4524377771AE13A99702F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.watchtests;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PanicGuardWatchApp.app/PanicGuardWatchApp";
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		A1E56F437DF9C33360EEEA25 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PanicGuard/App/PanicGuard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = PanicGuard/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B00A0C13ABACB1A2D35AAF57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PanicGuard.app/PanicGuard";
+			};
+			name = Release;
+		};
+		B0567DE18B503BD5B18F6529 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PanicGuardWatch/App/PanicGuardWatch.entitlements;
+				INFOPLIST_FILE = PanicGuardWatch/App/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.watchapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		C45B8F33231B0EF2276EF223 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "panic-guard";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		E32EEFDDF0845F2E6BC28FAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "panic-guard";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		EF11E596A4BE748A3A5B2378 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PanicGuard.app/PanicGuard";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0B7A6531E4EEF18EB4B441E1 /* Build configuration list for PBXProject "PanicGuard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E32EEFDDF0845F2E6BC28FAA /* Debug */,
+				C45B8F33231B0EF2276EF223 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1E6F481FEEE8A1256F3161FF /* Build configuration list for PBXNativeTarget "PanicGuardWatchApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C2B29008B30E8B3ED2A973B /* Debug */,
+				B0567DE18B503BD5B18F6529 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2006E89CA3E728FB888B2312 /* Build configuration list for PBXNativeTarget "PanicGuardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF11E596A4BE748A3A5B2378 /* Debug */,
+				B00A0C13ABACB1A2D35AAF57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2764BD104F0E320F563BFFBA /* Build configuration list for PBXNativeTarget "PanicGuard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C2B52952D7E858B76E26907 /* Debug */,
+				A1E56F437DF9C33360EEEA25 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		99E4FBCA53FA1C74005A8F53 /* Build configuration list for PBXNativeTarget "PanicGuardWatchTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				72C4524377771AE13A99702F /* Debug */,
+				0DE355C2745B8D297F884B9E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B7C644951A31894971711213 /* Project object */;
+}
