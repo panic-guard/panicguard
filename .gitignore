@@ -60,3 +60,25 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# macOS metadata files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode User Data
+xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# LiteRT / AI Models
+*.task
+*.tflite
+*.bin
+
+# Environment files
+.env
+
+# Large datasets or JSON mocks
+*.csv
+*.json
