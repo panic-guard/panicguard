@@ -24,8 +24,12 @@
 	<string>PanicGuard reads heart rate to detect panic episodes.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>PanicGuard writes episode records to your health data.</string>
-	<key>WKWatchKitApp</key>
+	<key>WKApplication</key>
 	<true/>
+	<key>WKBackgroundModes</key>
+	<array>
+		<string>self-management</string>
+	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>com.panicguard.app</string>
 </dict>

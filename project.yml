@@ -33,22 +33,18 @@ targets:
         NSSpeechRecognitionUsageDescription: "PanicGuard transcribes your Vocal Anchor response on-device."
         UIBackgroundModes:
           - audio
-          - fetch
           - processing
-        BGTaskSchedulerPermittedIdentifiers:
-          - com.panicguard.hrsample
     entitlements:
       path: PanicGuard/App/PanicGuard.entitlements
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access:
           - health-records
+        com.apple.developer.watchkit: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.app
         INFOPLIST_FILE: PanicGuard/App/Info.plist
-    dependencies:
-      - target: PanicGuardWatchApp
 
   # ── watchOS Watch App ─────────────────────────────────────────────────────
   PanicGuardWatchApp:
@@ -61,16 +57,20 @@ targets:
       path: PanicGuardWatch/App/Info.plist
       properties:
         CFBundleDisplayName: PanicGuard
-        WKWatchKitApp: true
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: com.panicguard.app
         NSHealthShareUsageDescription: "PanicGuard reads heart rate to detect panic episodes."
         NSHealthUpdateUsageDescription: "PanicGuard writes episode records to your health data."
+        WKBackgroundModes:
+          - self-management
     entitlements:
       path: PanicGuardWatch/App/PanicGuardWatch.entitlements
       properties:
         com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.background-delivery: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.watchapp
+        PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.app.watchapp
         INFOPLIST_FILE: PanicGuardWatch/App/Info.plist
 
   # ── iOS Unit Tests ────────────────────────────────────────────────────────
