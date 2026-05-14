@@ -1,6 +1,8 @@
 import Foundation
 import AVFoundation
+#if canImport(Speech)
 import Speech
+#endif
 
 protocol VocalAnchorManaging {
     /// Displays the anchor phrase and records + transcribes the user's reading for up to `timeout` seconds.

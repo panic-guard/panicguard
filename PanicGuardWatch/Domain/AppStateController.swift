@@ -1,22 +1,12 @@
 import Foundation
 import Combine
 
-/// Owns the current AppState and drives all legal transitions.
+/// Watch-target state owner. In production this will mirror state pushed from the iPhone.
+/// For the UI skeleton demo, nextStateForDemo() cycles through all states locally.
 @MainActor
 final class AppStateController: ObservableObject {
-    @Published private(set) var state: AppState = .onboarding
+    @Published private(set) var state: AppState = .idle
 
-    func send(_ event: AppStateEvent) {
-        // TODO: implement transition table
-    }
-
-    // Returns false if the transition is illegal from the current state.
-    func canSend(_ event: AppStateEvent) -> Bool {
-        // TODO: implement guard logic
-        return false
-    }
-
-    /// Demo-only: cycles through states in order so UI flow can be tested without real sensors.
     func nextStateForDemo() {
         switch state {
         case .onboarding:       state = .idle

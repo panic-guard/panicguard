@@ -2,7 +2,7 @@ import Foundation
 
 /// Step 3: deterministic mapping from TriageResult → InterventionAction.
 /// No LLM involved. This must remain pure and easily testable.
-enum InterventionAction: Equatable {
+enum InterventionAction: String, Codable, Equatable {
     case breathingGuide
     case groundingExercise
     case emergencyContact

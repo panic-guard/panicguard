@@ -26,5 +26,7 @@
 	<string>PanicGuard writes episode records to your health data.</string>
 	<key>WKWatchKitApp</key>
 	<true/>
+	<key>WKCompanionAppBundleIdentifier</key>
+	<string>com.panicguard.app</string>
 </dict>
 </plist>
