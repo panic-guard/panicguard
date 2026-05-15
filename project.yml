@@ -22,6 +22,9 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: PanicGuard
+    resources:
+      - path: Models/gemma-4-E2B-it-web.task
+        optional: true
     info:
       path: PanicGuard/App/Info.plist
       properties:
@@ -41,10 +44,14 @@ targets:
         com.apple.developer.healthkit.access:
           - health-records
         com.apple.developer.watchkit: true
+    configFiles:
+      Debug: Pods/Target Support Files/Pods-PanicGuard/Pods-PanicGuard.debug.xcconfig
+      Release: Pods/Target Support Files/Pods-PanicGuard/Pods-PanicGuard.release.xcconfig
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.app
         INFOPLIST_FILE: PanicGuard/App/Info.plist
+        OTHER_LDFLAGS: $(inherited)
 
   # ── watchOS Watch App ─────────────────────────────────────────────────────
   PanicGuardWatchApp:

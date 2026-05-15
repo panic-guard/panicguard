@@ -19,7 +19,7 @@ Key design insight: during severe panic attacks users cannot open apps. The Watc
 | iOS UI | SwiftUI, iOS 17+ |
 | watchOS UI | SwiftUI, watchOS 10+ |
 | HR sampling | HealthKit (`HKAnchoredObjectQuery`) |
-| LLM inference | MediaPipe LLM Inference API (LiteRT, Gemma 4 E4B, quantized, on-device) |
+| LLM inference | MediaPipe LLM Inference API (LiteRT, Gemma 4 E2B, quantized, on-device) |
 | Storage | Core Data |
 | Audio / ASR | AVFoundation + SFSpeechRecognizer (offline) |
 | Phone↔Watch | WatchConnectivity (`WCSession`) |

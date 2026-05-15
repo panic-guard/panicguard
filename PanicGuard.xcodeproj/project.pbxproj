@@ -33,6 +33,7 @@
 		C0683158D95EEE8D9EA7DE2F /* AgentProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3487552BF5B5180436E9C0 /* AgentProtocols.swift */; };
 		C1FA5B842F99979F4AF948E1 /* PanicGuardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FBD0CC16C1C05C93B4F5C84 /* PanicGuardApp.swift */; };
 		C83C4C53DE270095F45F63FF /* HRFeatureExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 404984A518D76EDDF43DC40F /* HRFeatureExtractor.swift */; };
+		CACFCE8D9F5AA3365872607C /* Pods_PanicGuard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36D20614434B963ADE01B163 /* Pods_PanicGuard.framework */; };
 		DD79CA1343C9A513624FBCDB /* ActiveTriageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F790252F492F02E89A0C4ABF /* ActiveTriageView.swift */; };
 		E52153BB0567A76B138EDBAF /* HRSamplerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 421E31A126239B2304776A3B /* HRSamplerTests.swift */; };
 		EC913110A7B93D84C53535F2 /* AppStateControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D86221EC0C955FEBDADE4 /* AppStateControllerTests.swift */; };
@@ -62,6 +63,7 @@
 		03A309D06331F90619343F06 /* RuleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngineTests.swift; sourceTree = "<group>"; };
 		0471C253A080BD281842B19D /* PanicGuardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PanicGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C1D86221EC0C955FEBDADE4 /* AppStateControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateControllerTests.swift; sourceTree = "<group>"; };
+		0C6746ACD6F5F8D11422DADE /* Pods-PanicGuard.debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Pods-PanicGuard.debug.xcconfig"; sourceTree = "<group>"; };
 		1BD645831C1BC3E92E70F6BA /* PanicGuardWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PanicGuardWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		21234190F4B1A1CC284AED34 /* WatchIdleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchIdleView.swift; sourceTree = "<group>"; };
 		2933D4EFF8CFE52F2093CFCC /* WatchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRootView.swift; sourceTree = "<group>"; };
@@ -70,6 +72,7 @@
 		2FBD0CC16C1C05C93B4F5C84 /* PanicGuardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicGuardApp.swift; sourceTree = "<group>"; };
 		318A86B76EA87CE84FF4AE11 /* WatchWatchingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWatchingView.swift; sourceTree = "<group>"; };
 		356EA67BECE2FF1AB99E9261 /* UserProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileStore.swift; sourceTree = "<group>"; };
+		36D20614434B963ADE01B163 /* Pods_PanicGuard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PanicGuard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		381C24377E6682F578E43DF3 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		3CCF693589C7D984B62C33B5 /* HRFeatureExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRFeatureExtractorTests.swift; sourceTree = "<group>"; };
 		404984A518D76EDDF43DC40F /* HRFeatureExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRFeatureExtractor.swift; sourceTree = "<group>"; };
@@ -85,21 +88,35 @@
 		640EC778D925DDC069EA1972 /* PanicGuardWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PanicGuardWatch.entitlements; sourceTree = "<group>"; };
 		7192692213DDE2CFF750445F /* PanicGuard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PanicGuard.entitlements; sourceTree = "<group>"; };
 		7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocalAnchorManager.swift; sourceTree = "<group>"; };
+		7D6EC1D778792416A5553F51 /* Pods-PanicGuard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PanicGuard.release.xcconfig"; path = "Target Support Files/Pods-PanicGuard/Pods-PanicGuard.release.xcconfig"; sourceTree = "<group>"; };
 		9FD8A5341B7043801668CCA4 /* WatchSilentInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSilentInvitationView.swift; sourceTree = "<group>"; };
 		B78201F641E0685D7C9A9AD4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B8C6BF3F94B946D3FEAEBEE4 /* InterventionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterventionView.swift; sourceTree = "<group>"; };
 		C4A9B63D6ADD13B941B7D4E5 /* EpisodeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStore.swift; sourceTree = "<group>"; };
+		D54FE9840388929287DFA3D7 /* Pods-PanicGuard.release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Pods-PanicGuard.release.xcconfig"; sourceTree = "<group>"; };
 		D740101B5F3071BEA492F3C0 /* WatchingGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchingGuardTests.swift; sourceTree = "<group>"; };
 		D97515AE80125CE9B541804C /* AppStateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateController.swift; sourceTree = "<group>"; };
 		E03FBFA69C68890A885BB00F /* RuleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngine.swift; sourceTree = "<group>"; };
 		E1D842018C97D888F1BC000D /* PanicGuardWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PanicGuardWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E46B24EAF998E87C37E10EF4 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		EA8FEEF51E9351C3FD662B2B /* Pods-PanicGuard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PanicGuard.debug.xcconfig"; path = "Target Support Files/Pods-PanicGuard/Pods-PanicGuard.debug.xcconfig"; sourceTree = "<group>"; };
 		EABA37CE50A637928523ABAC /* AppStateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateController.swift; sourceTree = "<group>"; };
 		F790252F492F02E89A0C4ABF /* ActiveTriageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveTriageView.swift; sourceTree = "<group>"; };
 		FCB68486400B47D3D591315E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD068CB1E7A9BE7308E10B8E /* WatchingGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchingGuard.swift; sourceTree = "<group>"; };
 		FF1DBF9B1768E8B2168575E3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BEAA3CAF8DC91578A04F22D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CACFCE8D9F5AA3365872607C /* Pods_PanicGuard.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		004B12D23FA659A95486C275 /* PanicGuardTests */ = {
@@ -144,6 +161,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		228C0CFC44382AEA1ECCB5D9 /* Target Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				D652003152245D6B1E5607EF /* Pods-PanicGuard */,
+			);
+			path = "Target Support Files";
+			sourceTree = "<group>";
+		};
 		3CCA8F2E3F3DECCD300EABF5 /* PanicGuardWatch */ = {
 			isa = PBXGroup;
 			children = (
@@ -165,6 +190,16 @@
 				5BF2FF54A30FF9EBE2D7C710 /* PostEpisodeView.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		4A734A9F39075C24EA64447F /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				228C0CFC44382AEA1ECCB5D9 /* Target Support Files */,
+				EA8FEEF51E9351C3FD662B2B /* Pods-PanicGuard.debug.xcconfig */,
+				7D6EC1D778792416A5553F51 /* Pods-PanicGuard.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		4ACC1184FC6A72067FF1D3DC /* PanicGuardWatchTests */ = {
@@ -218,6 +253,14 @@
 			path = UI;
 			sourceTree = "<group>";
 		};
+		A7C4F8174DD6B7C175864E22 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				36D20614434B963ADE01B163 /* Pods_PanicGuard.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		AE9459F9B2CA64E051A51E43 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
@@ -248,6 +291,15 @@
 			path = StateMachine;
 			sourceTree = "<group>";
 		};
+		D652003152245D6B1E5607EF /* Pods-PanicGuard */ = {
+			isa = PBXGroup;
+			children = (
+				0C6746ACD6F5F8D11422DADE /* Pods-PanicGuard.debug.xcconfig */,
+				D54FE9840388929287DFA3D7 /* Pods-PanicGuard.release.xcconfig */,
+			);
+			path = "Pods-PanicGuard";
+			sourceTree = "<group>";
+		};
 		F7450303AB6A49058B89E274 = {
 			isa = PBXGroup;
 			children = (
@@ -255,7 +307,9 @@
 				004B12D23FA659A95486C275 /* PanicGuardTests */,
 				3CCA8F2E3F3DECCD300EABF5 /* PanicGuardWatch */,
 				4ACC1184FC6A72067FF1D3DC /* PanicGuardWatchTests */,
+				4A734A9F39075C24EA64447F /* Pods */,
 				5192AEB4BBB2380F3C0A6EEF /* Products */,
+				A7C4F8174DD6B7C175864E22 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -282,8 +336,6 @@
 			dependencies = (
 			);
 			name = PanicGuardWatchApp;
-			packageProductDependencies = (
-			);
 			productName = PanicGuardWatchApp;
 			productReference = E1D842018C97D888F1BC000D /* PanicGuardWatchApp.app */;
 			productType = "com.apple.product-type.application";
@@ -300,8 +352,6 @@
 				006594AFBB95A682256431BF /* PBXTargetDependency */,
 			);
 			name = PanicGuardTests;
-			packageProductDependencies = (
-			);
 			productName = PanicGuardTests;
 			productReference = 0471C253A080BD281842B19D /* PanicGuardTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -310,15 +360,15 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2764BD104F0E320F563BFFBA /* Build configuration list for PBXNativeTarget "PanicGuard" */;
 			buildPhases = (
+				6464816B5D1EE8C867ABBD67 /* [CP] Check Pods Manifest.lock */,
 				2B0248A3336C24E7229F6153 /* Sources */,
+				BEAA3CAF8DC91578A04F22D0 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = PanicGuard;
-			packageProductDependencies = (
-			);
 			productName = PanicGuard;
 			productReference = 46B2D1EB72D7E3464D31A964 /* PanicGuard.app */;
 			productType = "com.apple.product-type.application";
@@ -335,8 +385,6 @@
 				B03E524F8D805A0AC3622F11 /* PBXTargetDependency */,
 			);
 			name = PanicGuardWatchTests;
-			packageProductDependencies = (
-			);
 			productName = PanicGuardWatchTests;
 			productReference = 1BD645831C1BC3E92E70F6BA /* PanicGuardWatchTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -385,6 +433,31 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		6464816B5D1EE8C867ABBD67 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PanicGuard-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		263FEB28C2B60AD40213CE7E /* Sources */ = {
@@ -498,6 +571,7 @@
 		};
 		6C2B52952D7E858B76E26907 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EA8FEEF51E9351C3FD662B2B /* Pods-PanicGuard.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PanicGuard/App/PanicGuard.entitlements;
@@ -508,6 +582,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -535,6 +610,7 @@
 		};
 		A1E56F437DF9C33360EEEA25 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7D6EC1D778792416A5553F51 /* Pods-PanicGuard.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PanicGuard/App/PanicGuard.entitlements;
@@ -545,6 +621,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.panicguard.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
