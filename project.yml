@@ -83,6 +83,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.tests
+        GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: PanicGuard
 
@@ -96,5 +97,6 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.watchtests
+        GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: PanicGuardWatchApp

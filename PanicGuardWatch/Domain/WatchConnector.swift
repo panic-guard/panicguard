@@ -17,13 +17,13 @@ final class WatchConnector: NSObject, WatchConnecting, WCSessionDelegate {
     }
 
     func sendHRBatch(_ samples: [Double], stepCount: Int) {
-        // TODO: session.transferUserInfo(...)
-        fatalError("not implemented")
+        guard session.activationState == .activated else { return }
+        session.transferUserInfo(["hrSamples": samples, "stepCount": stepCount])
     }
 
     func sendSilentInvitation() {
-        // TODO: session.sendMessage(...)
-        fatalError("not implemented")
+        guard session.isReachable else { return }
+        session.sendMessage(["type": "silentInvitation"], replyHandler: nil, errorHandler: nil)
     }
 
     // MARK: - WCSessionDelegate stubs
