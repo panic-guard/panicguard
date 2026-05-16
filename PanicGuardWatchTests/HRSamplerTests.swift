@@ -8,7 +8,7 @@ final class HRSamplerTests: XCTestCase {
 
     func test_samplerProtocol_conformance() {
         let _: HRSampling = HRSampler(mode: .mock(.panic))
-        // 컴파일 통과 = 프로토콜 준수 확인
+        // Compile-time conformance check
     }
 
     func test_startThenStop_doesNotCrash() {
@@ -18,7 +18,7 @@ final class HRSamplerTests: XCTestCase {
     }
 
     func test_startSampling_storesActiveQuery() {
-        // mock 모드에서 "query" 역할 = timer
+        // mock mode where "query" role is a timer
         let sampler = HRSampler(mode: .mock(.panic))
         sampler.startSampling(handler: { _, _ in })
         XCTAssertNotNil(sampler.timer)
@@ -32,8 +32,11 @@ final class HRSamplerTests: XCTestCase {
         XCTAssertNil(sampler.timer)
     }
 
-    func test_requestAuthorization_requestsHeartRatePermission() {
-        // iOS/watchOS simulator에서 HealthKit 미지원 → 특정 에러 throw 확인
+    func test_requestAuthorization_requestsHeartRatePermission() throws {
+        // watchOS 시뮬레이터는 HealthKit이 활성화되어 있어 권한 UI를 대기하다 hang됨
+        #if targetEnvironment(simulator)
+        throw XCTSkip("HealthKit authorization UI cannot appear on watchOS simulator")
+        #else
         let sampler = HRSampler(mode: .real)
         let expectation = expectation(description: "auth completes")
         Task {
@@ -45,6 +48,7 @@ final class HRSamplerTests: XCTestCase {
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 3)
+        #endif
     }
 
     func test_newHeartRateSample_callsHandler() {

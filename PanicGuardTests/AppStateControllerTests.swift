@@ -195,4 +195,79 @@ final class AppStateControllerTests: XCTestCase {
 
         XCTAssertEqual(factoryCalls, 2, "Factory must be called again for the second triage cycle")
     }
+
+    // MARK: - selfCheckRequested
+
+    func test_selfCheckRequested_fromIdle_transitionsToActiveTriage() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        XCTAssertEqual(sut.state, .idle)
+        sut.send(.selfCheckRequested)
+        XCTAssertEqual(sut.state, .activeTriage)
+    }
+
+    func test_selfCheckRequested_fromOnboarding_isIgnored() {
+        let sut = makeController()
+        XCTAssertEqual(sut.state, .onboarding)
+        sut.send(.selfCheckRequested)
+        XCTAssertEqual(sut.state, .onboarding)
+    }
+
+    func test_selfCheckRequested_fromWatching_isIgnored() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertEqual(sut.state, .watching)
+        sut.send(.selfCheckRequested)
+        XCTAssertEqual(sut.state, .watching)
+    }
+
+    func test_selfCheckRequested_fromActiveTriage_isIgnored() {
+        let sut = makeController()
+        advanceToState(.activeTriage, controller: sut)
+        sut.send(.selfCheckRequested)
+        XCTAssertEqual(sut.state, .activeTriage)
+    }
+
+    func test_canSend_selfCheckRequested_trueWhenIdle() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        XCTAssertTrue(sut.canSend(.selfCheckRequested))
+    }
+
+    func test_canSend_selfCheckRequested_falseWhenNotIdle() {
+        let sut = makeController()
+        // Onboarding state
+        XCTAssertFalse(sut.canSend(.selfCheckRequested))
+        // Watching state
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertFalse(sut.canSend(.selfCheckRequested))
+    }
+
+    func test_selfCheckRequested_callsAgentFactory_withoutPreload() {
+        var factoryCalls = 0
+        let sut = AppStateController(agentFactory: {
+            factoryCalls += 1
+            return FakeTriageAgent()
+        })
+        sut.send(.onboardingComplete)
+        sut.send(.selfCheckRequested)
+        // beginTriage() called directly — factory called exactly once, no preload phase
+        XCTAssertEqual(factoryCalls, 1)
+        XCTAssertEqual(sut.state, .activeTriage)
+    }
+
+    func test_selfCheckRequested_preservesPendingFeatures() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        let features = HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 120, slopeBPMPerMin: 12),
+            context: .init(isMoving: false, stepsLast5Min: 5)
+        )
+        sut.setPendingFeatures(features)
+        sut.send(.selfCheckRequested)
+        // State reaches activeTriage with features set — no crash, correct state
+        XCTAssertEqual(sut.state, .activeTriage)
+    }
 }

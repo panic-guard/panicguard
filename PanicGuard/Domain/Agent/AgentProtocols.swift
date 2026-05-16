@@ -28,10 +28,27 @@ struct TriageResult: Codable, Equatable {
     }
 }
 
-/// Vocal anchor input fed to the LLM tool call.
+/// Word-level speech quality metrics extracted from SFTranscriptionSegment data.
+/// nil when recognition failed or the transcript was too short to measure (< 2 words).
+struct VocalMetrics: Codable, Equatable {
+    let speakingRateWPM: Double     // words per minute over the spoken portion
+    let maxPauseSeconds: Double     // longest gap between consecutive words
+    let meanPauseSeconds: Double    // average inter-word gap (all gaps > 0)
+    let totalPauseSeconds: Double   // sum of all inter-word gaps > 0.3 s
+    let durationSeconds: Double     // time from first word start to last word end
+}
+
+/// Vocal anchor input fed to the LLM triage.
 struct VocalAnchorResult: Equatable {
     let targetPhrase: String
-    let transcript: String?             // nil if speech recognition failed entirely
+    let transcript: String?         // nil if speech recognition failed entirely
+    let vocalMetrics: VocalMetrics? // nil when transcript is nil or < 2 words recognized
+
+    init(targetPhrase: String, transcript: String?, vocalMetrics: VocalMetrics? = nil) {
+        self.targetPhrase = targetPhrase
+        self.transcript = transcript
+        self.vocalMetrics = vocalMetrics
+    }
 }
 
 // MARK: - Step 1 protocol

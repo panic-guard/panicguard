@@ -1,4 +1,5 @@
 import SwiftUI
+import WatchKit
 
 struct WatchSilentInvitationView: View {
     @State private var breathScale: CGFloat = 0.65
@@ -32,6 +33,7 @@ struct WatchSilentInvitationView: View {
         .onAppear {
             breathScale = 1.0
             fillOpacity = 0.12
+            WKInterfaceDevice.current().play(.notification)
         }
     }
 }

@@ -31,6 +31,56 @@ enum GemmaAgentPrompts {
         }
     }
 
+    static func speechRateLabel(_ wpm: Double) -> String {
+        switch wpm {
+        case ..<60:  return "very slow — possible difficulty speaking"
+        case 60..<100: return "slow"
+        case 100..<170: return "normal"
+        default:     return "fast — possible rushing or anxiety"
+        }
+    }
+
+    static func maxPauseLabel(_ seconds: Double) -> String {
+        switch seconds {
+        case ..<0.5:  return "fluent"
+        case 0.5..<1.5: return "moderate pause"
+        default:      return "long pause — hesitation or difficulty"
+        }
+    }
+
+    /// Compares current speaking rate against the calm-state baseline.
+    static func vocalRateChangeLabel(baselineWPM: Double, currentWPM: Double) -> String {
+        guard baselineWPM > 0 else { return "no baseline" }
+        let ratio = currentWPM / baselineWPM
+        let pct = Int(round((1 - ratio) * 100))
+        switch ratio {
+        case 0.85...: return "similar to baseline"
+        case 0.60..<0.85: return "\(pct)% slower than baseline — mild disruption"
+        default: return "\(pct)% slower than baseline — significant disruption"
+        }
+    }
+
+    /// Compares current pause against the calm-state baseline pause.
+    static func pauseMultiplierLabel(baselinePause: Double, currentPause: Double) -> String {
+        guard baselinePause > 0.01 else { return maxPauseLabel(currentPause) }
+        let ratio = currentPause / baselinePause
+        switch ratio {
+        case ..<2.0: return String(format: "similar to baseline (%.1fx)", ratio)
+        case 2.0..<4.0: return String(format: "%.1fx baseline — moderately elevated", ratio)
+        default: return String(format: "%.1fx baseline — significantly elevated", ratio)
+        }
+    }
+
+    /// Normalizes a phrase for exact-match comparison:
+    /// collapses newlines and multiple spaces, lowercases.
+    static func normalizePhrase(_ text: String) -> String {
+        text.replacingOccurrences(of: "\n", with: " ")
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+            .lowercased()
+    }
+
     /// Returns true if current HR is within physiologically expected range for the given exertion level.
     static func isHRProportionate(meanBPM: Double, stepsPerMin: Int, baselineHR: Double) -> Bool {
         let headroom: Double
@@ -79,19 +129,34 @@ enum GemmaAgentPrompts {
             baselineSection = "- Baseline unavailable (onboarding incomplete)"
         }
 
+        let displayPhrase = context.anchor.targetPhrase.replacingOccurrences(of: "\n", with: " ")
         let anchorSection: String
         if let transcript = context.anchor.transcript {
-            let match = transcript.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ==
-                        context.anchor.targetPhrase.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            anchorSection = """
-            - Target phrase: "\(context.anchor.targetPhrase)"
+            let match = normalizePhrase(context.anchor.targetPhrase) == normalizePhrase(transcript)
+            var lines = """
+            - Target phrase: "\(displayPhrase)"
             - Spoken transcript: "\(transcript)"
             - Exact match: \(match)
             - recognition_failed: false
             """
+            if let m = context.anchor.vocalMetrics {
+                let hesitationPct = m.durationSeconds > 0
+                    ? Int((m.totalPauseSeconds / m.durationSeconds * 100).rounded())
+                    : 0
+                lines += "\n- Speaking rate: \(Int(m.speakingRateWPM)) WPM — \(speechRateLabel(m.speakingRateWPM))"
+                lines += "\n- Max pause: \(String(format: "%.2f", m.maxPauseSeconds))s — \(maxPauseLabel(m.maxPauseSeconds))"
+                lines += "\n- Mean pause: \(String(format: "%.2f", m.meanPauseSeconds))s — \(maxPauseLabel(m.meanPauseSeconds))"
+                lines += "\n- Hesitation ratio: \(hesitationPct)% of speech was significant pauses"
+                if let b = context.profile?.baselineVocalMetrics {
+                    lines += "\n- Rate vs calm baseline: \(vocalRateChangeLabel(baselineWPM: b.speakingRateWPM, currentWPM: m.speakingRateWPM))"
+                    lines += "\n- Max pause vs calm baseline: \(pauseMultiplierLabel(baselinePause: b.maxPauseSeconds, currentPause: m.maxPauseSeconds))"
+                    lines += "\n- Mean pause vs calm baseline: \(pauseMultiplierLabel(baselinePause: b.meanPauseSeconds, currentPause: m.meanPauseSeconds))"
+                }
+            }
+            anchorSection = lines
         } else {
             anchorSection = """
-            - Target phrase: "\(context.anchor.targetPhrase)"
+            - Target phrase: "\(displayPhrase)"
             - recognition_failed: true (user could not speak coherently)
             """
         }
@@ -144,6 +209,15 @@ enum GemmaAgentPrompts {
 
         recognition_failed: false always reduces likelihoodPanic relative to the HR signal alone.
         recognition_failed: true always increases likelihoodPanic regardless of movement.
+
+        When vocal metrics and a calm-state baseline are available:
+        "significant disruption" in rate (≥40% slower) OR max pause "significantly elevated" (≥4x baseline)
+        → Treat as equivalent weight to recognition_failed: true.
+        "mild disruption" in rate OR "moderately elevated" pauses
+        → Moderately increase likelihoodPanic; do not override HR evidence.
+        "similar to baseline" + exact match: true
+        → Strong evidence against panic; reduce likelihoodPanic significantly.
+        When no baseline exists, use absolute WPM labels (< 80 WPM is slow, > 170 is fast).
 
         ## Output
 
