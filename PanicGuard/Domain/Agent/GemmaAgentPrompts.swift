@@ -11,17 +11,60 @@ enum GemmaAgentPrompts {
         let riskRatio: Double?
     }
 
+    // MARK: - Pre-computed labels (quantitative reasoning in Swift, not LLM)
+
+    static func activityLabel(stepsPerMin: Int) -> String {
+        switch stepsPerMin {
+        case 0..<10:  return "sedentary (essentially at rest)"
+        case 10..<40: return "slow walk"
+        case 40..<70: return "brisk walk"
+        default:      return "jogging / running"
+        }
+    }
+
+    static func slopeLabel(bpmPerMin: Double) -> String {
+        switch bpmPerMin {
+        case ..<5:    return "flat"
+        case 5..<15:  return "gradual"
+        case 15..<25: return "moderate"
+        default:      return "steep"
+        }
+    }
+
+    /// Returns true if current HR is within physiologically expected range for the given exertion level.
+    static func isHRProportionate(meanBPM: Double, stepsPerMin: Int, baselineHR: Double) -> Bool {
+        let headroom: Double
+        switch stepsPerMin {
+        case 0..<10:  headroom = 25   // sedentary: up to +25 BPM is benign
+        case 10..<40: headroom = 45   // slow walk
+        case 40..<70: headroom = 65   // brisk walk
+        default:      headroom = 85   // jogging/running: HR can be 85+ above rest
+        }
+        return meanBPM <= baselineHR + headroom
+    }
+
     // MARK: - Single-turn triage prompt
 
     /// Embeds all pre-collected signals into one prompt so the LLM needs only one turn.
+    /// Quantitative interpretation (slope severity, activity level, HR proportionality)
+    /// is computed in Swift so the LLM reasons over semantic labels, not raw numbers.
     static func triagePrompt(context: Context) -> String {
+        let meanBPM = context.features.currentHRMetrics.meanBPM
+        let slope = context.features.currentHRMetrics.slopeBPMPerMin
         let stepsPerMin = context.features.context.stepsLast5Min / 5
+        let baselineHR = context.profile?.baselineHR ?? 70.0
+
+        let activity = activityLabel(stepsPerMin: stepsPerMin)
+        let slopeSeverity = slopeLabel(bpmPerMin: slope)
+        let proportionate = isHRProportionate(meanBPM: meanBPM, stepsPerMin: stepsPerMin, baselineHR: baselineHR)
+        let hrNote = proportionate
+            ? "within expected range for \(activity)"
+            : "HIGHER THAN EXPECTED for \(activity) — unexplained elevation"
 
         let hrSection = """
-        - Current mean HR: \(Int(context.features.currentHRMetrics.meanBPM)) BPM
-        - HR slope: \(String(format: "%.1f", context.features.currentHRMetrics.slopeBPMPerMin)) BPM/min
-        - User is actively moving: \(context.features.context.isMoving)
-        - Steps last 5 min: \(context.features.context.stepsLast5Min) (~\(stepsPerMin) steps/min)
+        - Current mean HR: \(Int(meanBPM)) BPM — \(hrNote)
+        - HR slope: \(String(format: "%.1f", slope)) BPM/min — \(slopeSeverity)
+        - Activity level: ~\(stepsPerMin) steps/min — \(activity)
         """
 
         let baselineSection: String
@@ -55,8 +98,8 @@ enum GemmaAgentPrompts {
 
         return """
         You are a clinical triage assistant for a wearable panic-detection app.
-        Given the sensor readings below, estimate the probability that the user is having a \
-        panic attack versus experiencing normal physical exertion or another physical cause.
+        Estimate two INDEPENDENT probabilities based on the sensor readings below.
+        The readings include pre-interpreted labels — use them directly in your reasoning.
 
         ## Sensor Readings
 
@@ -69,31 +112,38 @@ enum GemmaAgentPrompts {
         ### Vocal Anchor Test
         \(anchorSection)
 
-        ## How to interpret the signals
+        ## Output Definitions
 
-        Heart rate elevation alone is non-specific — it occurs in both panic and exercise. \
-        You must weigh all signals together:
+        **likelihoodPanic** — probability of a panic attack:
+        Psychogenic tachycardia from fear or anxiety. Key markers: HR higher than expected \
+        for activity level, flat or moderate slope at rest, cognitive distress (recognition_failed: true).
 
-        **Movement context**
-        High step rate (> 60 steps/min) combined with isMoving=true is strong evidence of \
-        physical exertion. Panic attacks cause tachycardia at rest, not during vigorous locomotion. \
-        Low or zero steps with a sudden HR spike is consistent with panic.
+        **likelihoodPhysicalAnomaly** — probability of a cardiac or autonomic anomaly:
+        Arrhythmia, SVT, or tachycardia disproportionate to observed exertion. \
+        NOT simply "not panic" — both probabilities can be high simultaneously \
+        (e.g. arrhythmia-triggered anxiety). Key marker: HR unexplained by exertion level.
 
-        **HR slope**
-        A steep sudden rise (> 20 BPM/min) without movement suggests autonomic activation typical \
-        of panic. A gradual rise (< 10 BPM/min) during activity is a normal exercise warm-up pattern.
+        ## Reasoning Guide
 
-        **Vocal anchor**
-        The user was asked to verbalize a short calming phrase. Being able to speak it clearly \
-        (recognition_failed: false) indicates the user is cognitively composed — a meaningful \
-        indicator against acute panic. Failing to produce speech (recognition_failed: true) suggests \
-        the user is too distressed to verbalize, which substantially raises panic likelihood.
+        Use the pre-computed labels above:
 
-        **HR / baseline ratio**
-        A ratio > 2.0 with no movement deserves more weight than the same ratio during active exercise, \
-        where such elevation is physiologically expected.
+        "within expected range" + gradual or flat slope + recognition_failed: false
+        → Strong evidence of normal exercise. likelihoodPanic should be LOW (< 0.3).
 
-        Reason holistically. Do not mechanically threshold any single signal — consider the full picture.
+        "HIGHER THAN EXPECTED" + sedentary + recognition_failed: true
+        → Strong panic signal. likelihoodPanic should be HIGH (> 0.7). \
+          Also consider elevated physical anomaly if HR is extreme.
+
+        "HIGHER THAN EXPECTED" + sedentary + recognition_failed: false
+        → Mixed signal. Panic is possible but anchor success tempers it. \
+          Physical anomaly likelihood rises.
+
+        "HIGHER THAN EXPECTED" + jogging or brisk walk + recognition_failed: true
+        → Ambiguous. Failed anchor during vigorous activity could be exercise exhaustion. \
+          Weigh the slope severity — steep slope at high steps/min still warrants concern.
+
+        recognition_failed: false always reduces likelihoodPanic relative to the HR signal alone.
+        recognition_failed: true always increases likelihoodPanic regardless of movement.
 
         ## Output
 
@@ -104,11 +154,11 @@ enum GemmaAgentPrompts {
           "likelihoodPanic": <0.0–1.0>,
           "likelihoodPhysicalAnomaly": <0.0–1.0>,
           "confidence": "<high|medium|low>",
-          "reasoningSummary": "<one sentence covering the key combination of signals>"
+          "reasoningSummary": "<one sentence covering the key label combination>"
         }
         </answer>
 
-        - likelihoodPanic and likelihoodPhysicalAnomaly are independent probabilities (need not sum to 1.0)
+        - likelihoodPanic and likelihoodPhysicalAnomaly are INDEPENDENT — do not force them to sum to 1.0
         - Use confidence "low" when baseline HR is unavailable
         """
     }
