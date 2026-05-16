@@ -37,7 +37,7 @@ final class MockUserProfileStore: UserProfileStoring {
 
 private func makeAgent(
     responses: [String],
-    profile: UserProfile = .init(age: 30, baselineHR: 72)
+    profile: UserProfile = .init(age: 30, baselineHR: 72, emergencyContactEnabled: false)
 ) -> (GemmaAgent, MockLLMSession) {
     let store = MockUserProfileStore()
     store.profile = profile
@@ -155,7 +155,7 @@ final class GemmaAgentTests: XCTestCase {
     func test_preload_sessionIsReusedInRunTriage() async throws {
         var factoryCalls = 0
         let store = MockUserProfileStore()
-        store.profile = .init(age: 30, baselineHR: 72)
+        store.profile = .init(age: 30, baselineHR: 72, emergencyContactEnabled: false)
         let agent = GemmaAgent(
             userProfileStore: store,
             sessionFactory: {
@@ -175,7 +175,7 @@ final class GemmaAgentTests: XCTestCase {
     func test_withoutPreload_sessionFactoryCalledOnce() async throws {
         var factoryCalls = 0
         let store = MockUserProfileStore()
-        store.profile = .init(age: 30, baselineHR: 72)
+        store.profile = .init(age: 30, baselineHR: 72, emergencyContactEnabled: false)
         let agent = GemmaAgent(
             userProfileStore: store,
             sessionFactory: {

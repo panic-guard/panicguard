@@ -2,7 +2,8 @@ import Foundation
 
 struct UserProfile: Codable, Equatable {
     let age: Int
-    let baselineHR: Double   // established during onboarding
+    let baselineHR: Double              // established during onboarding
+    let emergencyContactEnabled: Bool   // opt-in during onboarding; gates contact sheet in InterventionView
 }
 
 protocol UserProfileStoring {
