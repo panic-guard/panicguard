@@ -8,10 +8,19 @@ options:
   groupSortPosition: top
   createIntermediateGroups: true
 
+packages:
+  LiteRTLM:
+    url: https://github.com/lanka-ai-foundation/LiteRTLM-Swift-SDK
+    from: "0.1.0"
+
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    DEVELOPMENT_TEAM: "panic-guard"
+    CODE_SIGN_STYLE: Automatic
+    DEAD_CODE_STRIPPING: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    SWIFT_EMIT_LOC_STRINGS: YES
+    OTHER_CODE_SIGN_FLAGS: --deep
 
 targets:
 
@@ -22,9 +31,9 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: PanicGuard
-    resources:
-      - path: Models/gemma-4-E2B-it-web.task
-        optional: true
+      - path: Models/gemma-4-E2B-it.litertlm
+        buildPhase: resources
+        type: file
     info:
       path: PanicGuard/App/Info.plist
       properties:
@@ -43,15 +52,26 @@ targets:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access:
           - health-records
-        com.apple.developer.watchkit: true
-    configFiles:
-      Debug: Pods/Target Support Files/Pods-PanicGuard/Pods-PanicGuard.debug.xcconfig
-      Release: Pods/Target Support Files/Pods-PanicGuard/Pods-PanicGuard.release.xcconfig
+        com.apple.developer.kernel.increased-memory-limit: true
+    dependencies:
+      - package: LiteRTLM
+        product: LiteRTLM
+    postBuildScripts:
+      - name: Resign nested LiteRTLM dylibs
+        script: |
+          DYLIB="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/CLiteRTLM.framework/libGemmaModelConstraintProvider.dylib"
+          if [ -f "$DYLIB" ]; then
+            echo "Re-signing $DYLIB"
+            codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY}" --timestamp=none "$DYLIB"
+          fi
+        basedOnDependencyAnalysis: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.panicguard.app
         INFOPLIST_FILE: PanicGuard/App/Info.plist
         OTHER_LDFLAGS: $(inherited)
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: $(inherited)
+        EMBEDDED_CONTENT_CONTAINS_SWIFT: $(inherited)
 
   # ── watchOS Watch App ─────────────────────────────────────────────────────
   PanicGuardWatchApp:

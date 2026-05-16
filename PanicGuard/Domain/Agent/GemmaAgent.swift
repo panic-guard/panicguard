@@ -1,20 +1,15 @@
 import Foundation
-import MediaPipeTasksGenAI
 
-/// Step 2: wraps MediaPipe LLM Inference to run the Gemma 4 agentic triage workflow.
+/// Step 2: wraps the on-device LLM to run a single-turn Gemma 4 triage.
+/// All context (baseline, vocal anchor, risk ratio) is injected into one prompt by Swift;
+/// the LLM produces one <answer> block — no multi-turn tool calling needed.
+/// LiteRT-specific code lives in GemmaAgentLiteRTLM.swift.
 final class GemmaAgent: PanicTriageAgentProtocol {
 
     // MARK: - Configuration
 
     struct Configuration {
-        /// Caps KV-cache and output length — keep ≤512 on iPhone 14 Pro to stay under 4 GB peak.
-        var maxTokens: Int = 512
-        /// Model-level topk ceiling; the session topk must be ≤ this value.
-        var maxTopk: Int = 40
-        /// Per-session sampling: very low for deterministic triage output.
-        var temperature: Float = 0.1
-        /// Per-session topk; controls diversity within the model-level ceiling.
-        var topk: Int = 10
+        var maxTokens: Int = 4096
     }
 
     // MARK: - Error
@@ -26,112 +21,100 @@ final class GemmaAgent: PanicTriageAgentProtocol {
 
         var errorDescription: String? {
             switch self {
-            case .modelNotFound(let p):  return "Model file not found at: \(p)"
-            case .engineInit(let e):     return "LLM engine init failed: \(e.localizedDescription)"
-            case .malformedResponse(let r): return "Malformed LLM response: \(r)"
+            case .modelNotFound(let p):         return "Model file not found at: \(p)"
+            case .engineInit(let e):            return "LLM engine init failed: \(e.localizedDescription)"
+            case .malformedResponse(let r):     return "Malformed LLM response: \(r)"
             }
         }
     }
 
     // MARK: - Private state
 
-    private let engine: LlmInference
-    /// Reused across sessions; temperature and topk are session-level, not model-level.
-    private let sessionOptions: LlmInference.Session.Options
     private let userProfileStore: UserProfileStoring
+    private let sessionFactory: () async throws -> any LLMSessionProtocol
+    /// Background task started by preload(); runTriage reuses its result.
+    private var preloadTask: Task<(any LLMSessionProtocol)?, Never>?
 
     // MARK: - Init
 
-    init(
+    convenience init(
         modelPath: String,
         configuration: Configuration = .init(),
         userProfileStore: UserProfileStoring
     ) throws {
-        guard FileManager.default.fileExists(atPath: modelPath) else {
-            throw AgentError.modelNotFound(path: modelPath)
-        }
-        let modelOptions = LlmInference.Options(modelPath: modelPath)
-        modelOptions.maxTokens = configuration.maxTokens
-        modelOptions.maxTopk = configuration.maxTopk
-        do {
-            engine = try LlmInference(options: modelOptions)
-        } catch {
-            throw AgentError.engineInit(error)
-        }
-        let sessionOpts = LlmInference.Session.Options()
-        sessionOpts.temperature = configuration.temperature
-        sessionOpts.topk = configuration.topk
-        self.sessionOptions = sessionOpts
+        let factory = try LiteRTLMSessionFactory(modelPath: modelPath, configuration: configuration)
+        self.init(userProfileStore: userProfileStore, sessionFactory: factory.makeSession)
+    }
+
+    init(
+        userProfileStore: UserProfileStoring,
+        sessionFactory: @escaping () async throws -> any LLMSessionProtocol
+    ) {
         self.userProfileStore = userProfileStore
-    }
-
-    // MARK: - Tool implementations (called by the agent loop)
-
-    private func getUserBaseline() -> String {
-        struct Payload: Encodable {
-            let age: Int
-            let baseline_hr_bpm: Double
-        }
-        guard let profile = try? userProfileStore.load(),
-              let data = try? JSONEncoder().encode(
-                  Payload(age: profile.age, baseline_hr_bpm: profile.baselineHR)
-              ),
-              let json = String(data: data, encoding: .utf8) else {
-            return #"{"error":"profile_unavailable"}"#
-        }
-        return json
-    }
-
-    private func getVocalAnchorResult(_ anchor: VocalAnchorResult) -> String {
-        struct Payload: Encodable {
-            let target_phrase: String
-            let spoken_transcript: String
-            // nil transcript (recognition failure) is a strong panic signal fed to the LLM
-            let recognition_failed: Bool
-        }
-        let payload = Payload(
-            target_phrase: anchor.targetPhrase,
-            spoken_transcript: anchor.transcript ?? "",
-            recognition_failed: anchor.transcript == nil
-        )
-        guard let data = try? JSONEncoder().encode(payload),
-              let json = String(data: data, encoding: .utf8) else {
-            return "{}"
-        }
-        return json
-    }
-
-    private func calculateRiskRatio(currentHR: Double, baselineHR: Double) -> String {
-        struct Payload: Encodable {
-            let risk_ratio: Double
-            let current_hr_bpm: Int
-            let baseline_hr_bpm: Int
-        }
-        let ratio = baselineHR > 0 ? (currentHR / baselineHR * 100).rounded() / 100 : 0
-        let payload = Payload(
-            risk_ratio: ratio,
-            current_hr_bpm: Int(currentHR),
-            baseline_hr_bpm: Int(baselineHR)
-        )
-        guard let data = try? JSONEncoder().encode(payload),
-              let json = String(data: data, encoding: .utf8) else {
-            return "{}"
-        }
-        return json
+        self.sessionFactory = sessionFactory
     }
 
     // MARK: - PanicTriageAgentProtocol
+
+    /// Starts loading the LLM session in the background so runTriage can skip the ~5s engine load.
+    /// Safe to call multiple times — subsequent calls are no-ops.
+    func preload() async {
+        guard preloadTask == nil else { return }
+        let task = Task<(any LLMSessionProtocol)?, Never> { [sessionFactory] in
+            try? await sessionFactory()
+        }
+        preloadTask = task
+        _ = await task.value   // Block until session is ready so callers can rely on it.
+    }
 
     func runTriage(
         features: HRFeaturePayload,
         vocalAnchor: VocalAnchorResult
     ) async throws -> TriageResult {
-        // TODO: implement multi-step agent loop:
-        //   1. Build system prompt with tool schemas + HRFeaturePayload JSON
-        //   2. Loop: call engine.generateResponse, parse <tool_call> tags
-        //   3. Dispatch tool calls → getUserBaseline / getVocalAnchorResult / calculateRiskRatio
-        //   4. Feed tool results back as next turn
-        //   5. Parse final <answer> block into TriageResult
-        fatalError("not implemented")
+        let session = try await resolveSession()
+
+        let profile = try? userProfileStore.load()
+        let riskRatio: Double? = profile.flatMap { p in
+            guard p.baselineHR > 0 else { return nil }
+            return (features.currentHRMetrics.meanBPM / p.baselineHR * 100).rounded() / 100
+        }
+
+        let prompt = GemmaAgentPrompts.triagePrompt(context: .init(
+            features: features,
+            anchor: vocalAnchor,
+            profile: profile,
+            riskRatio: riskRatio
+        ))
+
+        let response = try await session.sendMessage(prompt)
+
+        guard let answerJSON = parseAnswer(from: response) else {
+            throw AgentError.malformedResponse(response)
+        }
+        guard let result = try? JSONDecoder().decode(TriageResult.self, from: Data(answerJSON.utf8)) else {
+            throw AgentError.malformedResponse("Cannot decode TriageResult from: \(answerJSON)")
+        }
+        return result
+    }
+
+    // MARK: - Helpers
+
+    private func resolveSession() async throws -> any LLMSessionProtocol {
+        if let task = preloadTask {
+            preloadTask = nil
+            if let preloaded = await task.value {
+                return preloaded
+            }
+            // Preload failed — fall through and try again.
+        }
+        return try await sessionFactory()
+    }
+
+    private func parseAnswer(from response: String) -> String? {
+        let pattern = #"<answer>([\s\S]*?)</answer>"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: response, range: NSRange(response.startIndex..., in: response)),
+              let range = Range(match.range(at: 1), in: response) else { return nil }
+        return String(response[range]).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

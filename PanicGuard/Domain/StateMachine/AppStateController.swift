@@ -2,21 +2,148 @@ import Foundation
 import Combine
 
 /// Owns the current AppState and drives all legal transitions.
+/// GemmaAgent (Step 2) is created on entry to activeTriage and released on exit,
+/// so the ~2 GB model only occupies memory during the triage window.
 @MainActor
 final class AppStateController: ObservableObject {
     @Published private(set) var state: AppState = .onboarding
+    @Published private(set) var lastTriageResult: TriageResult?
+
+    // MARK: - Dependencies
+
+    private let agentFactory: () throws -> any PanicTriageAgentProtocol
+
+    // MARK: - Triage state (activeTriage window only)
+
+    private var triageAgent: (any PanicTriageAgentProtocol)?
+    private var triageTask: Task<Void, Never>?
+    private var pendingFeatures: HRFeaturePayload?
+
+    // MARK: - Init
+
+    init(agentFactory: @escaping () throws -> any PanicTriageAgentProtocol) {
+        self.agentFactory = agentFactory
+    }
+
+    // MARK: - State machine
 
     func send(_ event: AppStateEvent) {
-        // TODO: implement transition table
+        switch (state, event) {
+
+        case (.onboarding, .onboardingComplete):
+            state = .idle
+
+        case (.idle, .hrElevationDetected):
+            state = .watching
+
+        case (.watching, .elevationSustained):
+            state = .silentInvitation
+            beginPreload()
+
+        case (.silentInvitation, .userAcknowledged):
+            state = .activeTriage
+            beginTriage()
+
+        case (.activeTriage, .triageComplete(let result)):
+            endTriage()
+            lastTriageResult = result
+            state = .intervention
+
+        case (.intervention, .interventionDismissed):
+            state = .postEpisodeLog
+
+        case (.postEpisodeLog, .logComplete):
+            state = .idle
+
+        case (_, .resetToIdle):
+            endTriage()
+            state = .idle
+
+        default:
+            break  // Illegal transitions are silently ignored.
+        }
     }
 
-    // Returns false if the transition is illegal from the current state.
     func canSend(_ event: AppStateEvent) -> Bool {
-        // TODO: implement guard logic
-        return false
+        switch (state, event) {
+        case (.onboarding,       .onboardingComplete):    return true
+        case (.idle,             .hrElevationDetected):   return true
+        case (.watching,         .elevationSustained):    return true
+        case (.silentInvitation, .userAcknowledged):      return true
+        case (.activeTriage,     .triageComplete):        return true
+        case (.intervention,     .interventionDismissed): return true
+        case (.postEpisodeLog,   .logComplete):           return true
+        case (_,                 .resetToIdle):           return true
+        default: return false
+        }
     }
 
-    /// Demo-only: cycles through states in order so UI flow can be tested without real sensors.
+    // MARK: - Pending data setters (called by views)
+
+    /// Store HR features from Step 1 before sending .userAcknowledged.
+    func setPendingFeatures(_ features: HRFeaturePayload) {
+        pendingFeatures = features
+    }
+
+    /// Called by ActiveTriageView after VocalAnchorManager captures the anchor.
+    /// This is the trigger that actually starts the LLM triage task.
+    func setPendingAnchor(_ anchor: VocalAnchorResult) {
+        launchTriageTask(anchor: anchor)
+    }
+
+    // MARK: - Triage lifecycle
+
+    /// Creates the agent and starts warming up the LLM session during silentInvitation.
+    /// This gives the engine ~2 min to load before the user acknowledges the haptic.
+    private func beginPreload() {
+        guard triageAgent == nil else { return }
+        do {
+            triageAgent = try agentFactory()
+            Task { await self.triageAgent?.preload() }
+        } catch {
+            // If factory fails here, beginTriage() will retry and fall back to idle.
+        }
+    }
+
+    /// Ensures the agent exists when entering activeTriage (fallback if preload wasn't triggered).
+    private func beginTriage() {
+        guard triageAgent == nil else { return }
+        do {
+            triageAgent = try agentFactory()
+        } catch {
+            state = .idle
+        }
+    }
+
+    /// Starts the async triage task once the vocal anchor is available.
+    private func launchTriageTask(anchor: VocalAnchorResult) {
+        guard let agent = triageAgent else { return }
+        let features = pendingFeatures ?? HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 0, slopeBPMPerMin: 0),
+            context: .init(isMoving: false, stepsLast5Min: 0)
+        )
+        triageTask = Task { [weak self] in
+            do {
+                let result = try await agent.runTriage(features: features, vocalAnchor: anchor)
+                guard !Task.isCancelled else { return }
+                await MainActor.run { self?.send(.triageComplete(result)) }
+            } catch {
+                await MainActor.run { self?.send(.resetToIdle) }
+            }
+        }
+    }
+
+    /// Cancels the triage task and releases the model from memory.
+    private func endTriage() {
+        triageTask?.cancel()
+        triageTask = nil
+        triageAgent = nil  // Releases LlmInference → model memory freed.
+        pendingFeatures = nil
+    }
+
+    // MARK: - Demo helper
+
+    /// Demo-only: cycles through states without real sensors.
     func nextStateForDemo() {
         switch state {
         case .onboarding:       state = .idle

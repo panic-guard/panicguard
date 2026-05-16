@@ -44,11 +44,17 @@ protocol HRFeatureExtracting {
 // MARK: - Step 2 protocol
 
 protocol PanicTriageAgentProtocol {
-    /// Runs the Gemma 4 multi-step agentic workflow and returns a TriageResult.
+    /// Warms up the LLM session in the background so runTriage can reuse it.
+    func preload() async
+    /// Runs the single-turn Gemma 4 triage and returns a TriageResult.
     func runTriage(
         features: HRFeaturePayload,
         vocalAnchor: VocalAnchorResult
     ) async throws -> TriageResult
+}
+
+extension PanicTriageAgentProtocol {
+    func preload() async {}
 }
 
 // MARK: - Step 3 protocol
