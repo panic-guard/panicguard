@@ -17,6 +17,7 @@ enum AppStateEvent {
     case hrElevationDetected
     case elevationSustained        // 2 min unexplained elevation → haptic
     case userAcknowledged          // user tapped watch / opened app
+    case selfCheckRequested        // user manually initiates triage from idle
     case triageComplete(TriageResult)
     case interventionDismissed
     case logComplete

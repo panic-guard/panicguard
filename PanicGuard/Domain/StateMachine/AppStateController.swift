@@ -33,6 +33,10 @@ final class AppStateController: ObservableObject {
         case (.onboarding, .onboardingComplete):
             state = .idle
 
+        case (.idle, .selfCheckRequested):
+            state = .activeTriage
+            beginTriage()
+
         case (.idle, .hrElevationDetected):
             state = .watching
 
@@ -67,6 +71,7 @@ final class AppStateController: ObservableObject {
     func canSend(_ event: AppStateEvent) -> Bool {
         switch (state, event) {
         case (.onboarding,       .onboardingComplete):    return true
+        case (.idle,             .selfCheckRequested):    return true
         case (.idle,             .hrElevationDetected):   return true
         case (.watching,         .elevationSustained):    return true
         case (.silentInvitation, .userAcknowledged):      return true
