@@ -6,12 +6,28 @@ struct IdleView: View {
     @State private var pulseScale: CGFloat = 1.0
     @State private var isFetching = false
     @State private var showNoWatchAlert = false
+    @State private var showSettings = false
 
     private let fetcher = iPhoneHRFetcher()
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
+
+            // Settings gear — top right
+            VStack {
+                HStack {
+                    Spacer()
+                    Button { showSettings = true } label: {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 18, weight: .light))
+                            .foregroundColor(Color.gray.opacity(0.5))
+                    }
+                    .padding(.top, 60)
+                    .padding(.trailing, 24)
+                }
+                Spacer()
+            }
 
             VStack(spacing: 20) {
                 ZStack {
@@ -46,12 +62,12 @@ struct IdleView: View {
 
                 Spacer().frame(height: 20)
 
+                // Primary CTA: manual triage with HR fetch
                 Button {
                     guard !isFetching else { return }
                     isFetching = true
                     Task {
                         guard let payload = await fetcher.fetch() else {
-                            // No Watch HR data — block to prevent 0 BPM from misleading GemmaAgent
                             showNoWatchAlert = true
                             isFetching = false
                             return
@@ -63,12 +79,31 @@ struct IdleView: View {
                 } label: {
                     if isFetching {
                         ProgressView().tint(.teal)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
                     } else {
                         Text("Check my state")
-                            .font(.caption)
-                            .foregroundColor(.teal)
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(Color.teal)
+                            .cornerRadius(16)
                     }
                 }
+                .padding(.horizontal, 40)
+                .disabled(isFetching)
+
+                // Secondary CTA: skip triage, go directly to intervention
+                Button {
+                    controller.send(.userRequestedDirectIntervention)
+                } label: {
+                    Text("I need help now")
+                        .font(.subheadline)
+                        .foregroundColor(Color.teal.opacity(0.75))
+                }
+                .padding(.bottom, 40)
             }
         }
         .onAppear { pulseScale = 1.3 }
@@ -76,6 +111,9 @@ struct IdleView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("No recent heart rate data found. Please wear your Apple Watch and try again.")
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
 }

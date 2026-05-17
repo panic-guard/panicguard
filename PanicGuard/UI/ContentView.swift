@@ -28,7 +28,7 @@ struct ContentView: View {
                     Spacer()
                     Button { controller.nextStateForDemo() } label: {
                         HStack(spacing: 5) {
-                            Text(controller.state.rawValue)
+                            Text(demoLabel)
                                 .font(.caption2)
                                 .foregroundColor(.white.opacity(0.6))
                             Image(systemName: "arrow.right")
@@ -46,5 +46,12 @@ struct ContentView: View {
             }
         }
         .ignoresSafeArea()
+    }
+
+    private var demoLabel: String {
+        if controller.state == .intervention {
+            return "\(controller.state.rawValue) · \(controller.lastInterventionAction.rawValue)"
+        }
+        return controller.state.rawValue
     }
 }

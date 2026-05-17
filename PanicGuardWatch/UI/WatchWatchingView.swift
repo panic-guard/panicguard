@@ -15,10 +15,15 @@ struct WatchWatchingView: View {
                     .font(.system(size: 26, weight: .ultraLight))
                     .foregroundColor(.teal)
 
-                Text("Analyzing")
+                Text("Elevated HR")
                     .font(.caption)
                     .fontWeight(.light)
                     .foregroundColor(.white)
+
+                Text("Checking if this is exercise")
+                    .font(.system(size: 10))
+                    .foregroundColor(.gray.opacity(0.7))
+                    .multilineTextAlignment(.center)
 
                 HStack(spacing: 7) {
                     ForEach(0..<3, id: \.self) { i in

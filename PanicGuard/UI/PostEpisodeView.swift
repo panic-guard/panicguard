@@ -64,7 +64,7 @@ struct PostEpisodeView: View {
                 Spacer()
 
                 Button {
-                    controller.nextStateForDemo()
+                    controller.send(.logComplete)
                 } label: {
                     Text("Save & Close")
                         .font(.body)

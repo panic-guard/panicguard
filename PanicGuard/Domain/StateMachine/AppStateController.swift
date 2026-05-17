@@ -6,7 +6,7 @@ import Combine
 /// so the ~2 GB model only occupies memory during the triage window.
 @MainActor
 final class AppStateController: ObservableObject {
-    @Published private(set) var state: AppState = .onboarding
+    @Published private(set) var state: AppState
     @Published private(set) var lastTriageResult: TriageResult?
     @Published private(set) var lastInterventionAction: InterventionAction = .none
 
@@ -20,15 +20,32 @@ final class AppStateController: ObservableObject {
     private var triageAgent: (any PanicTriageAgentProtocol)?
     private var triageTask: Task<Void, Never>?
     private var pendingFeatures: HRFeaturePayload?
+    private var isDemoMode = false
+    private var demoResultIndex = 0
+
+    // Cycles through all 4 RuleEngine outcomes so every intervention screen can be demoed.
+    private static let demoTriageResults: [TriageResult] = [
+        TriageResult(likelihoodPanic: 0.55, likelihoodPhysicalAnomaly: 0.10, confidence: .medium,
+                     reasoningSummary: "Demo: moderate panic likelihood → grounding exercise"),
+        TriageResult(likelihoodPanic: 0.80, likelihoodPhysicalAnomaly: 0.10, confidence: .medium,
+                     reasoningSummary: "Demo: high panic likelihood → breathing guide"),
+        TriageResult(likelihoodPanic: 0.92, likelihoodPhysicalAnomaly: 0.05, confidence: .high,
+                     reasoningSummary: "Demo: near-certain panic, high confidence → emergency contact"),
+        TriageResult(likelihoodPanic: 0.25, likelihoodPhysicalAnomaly: 0.80, confidence: .high,
+                     reasoningSummary: "Demo: physical anomaly → medical alert"),
+    ]
 
     // MARK: - Init
 
     init(
         agentFactory: @escaping () throws -> any PanicTriageAgentProtocol,
-        ruleEngine: RuleEngineProtocol = RuleEngine()
+        ruleEngine: RuleEngineProtocol = RuleEngine(),
+        profileStore: UserProfileStoring = UserProfileStore()
     ) {
         self.agentFactory = agentFactory
         self.ruleEngine = ruleEngine
+        // Skip onboarding if the user has already completed it.
+        self.state = (try? profileStore.load()) != nil ? .idle : .onboarding
     }
 
     // MARK: - State machine
@@ -143,7 +160,13 @@ final class AppStateController: ObservableObject {
 
     /// Starts the async triage task once the vocal anchor is available.
     private func launchTriageTask(anchor: VocalAnchorResult) {
-        guard let agent = triageAgent else { return }
+        guard let agent = triageAgent else {
+            guard isDemoMode else { return }
+            let demoResult = Self.demoTriageResults[demoResultIndex % Self.demoTriageResults.count]
+            demoResultIndex += 1
+            send(.triageComplete(demoResult))
+            return
+        }
         let features = pendingFeatures ?? HRFeaturePayload(
             currentHRMetrics: .init(meanBPM: 0, slopeBPMPerMin: 0),
             context: .init(isMoving: false, stepsLast5Min: 0)
@@ -171,14 +194,20 @@ final class AppStateController: ObservableObject {
 
     /// Demo-only: cycles through states without real sensors.
     func nextStateForDemo() {
+        isDemoMode = true
         switch state {
         case .onboarding:       state = .idle
         case .idle:             state = .watching
         case .watching:         state = .silentInvitation
         case .silentInvitation: state = .activeTriage
-        case .activeTriage:     state = .intervention
+        case .activeTriage:
+            let demoResult = Self.demoTriageResults[demoResultIndex % Self.demoTriageResults.count]
+            demoResultIndex += 1
+            lastTriageResult = demoResult
+            lastInterventionAction = ruleEngine.selectIntervention(for: demoResult)
+            state = .intervention
         case .intervention:     state = .postEpisodeLog
-        case .postEpisodeLog:   state = .idle
+        case .postEpisodeLog:   isDemoMode = false; state = .idle
         }
     }
 }

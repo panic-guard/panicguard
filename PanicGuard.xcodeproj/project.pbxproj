@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0267F252BEF6993E28B8CAA9 /* GemmaAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B95B8C9EF055A3F0CE4B955 /* GemmaAgent.swift */; };
 		03711013D9EAAC9AE897D39B /* AppStateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97515AE80125CE9B541804C /* AppStateController.swift */; };
+		20F2FC0468B7C00F1D1228A9 /* WatchPostEpisodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0210CB6777F55ADB0D66AF65 /* WatchPostEpisodeView.swift */; };
 		29B82AEA8A8C0A16BEA464CA /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381C24377E6682F578E43DF3 /* AppState.swift */; };
 		2C44E7D61FC5DCDAE9E5CD00 /* PanicGuardWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0A52D1E5774D1EFF6320E4 /* PanicGuardWatchApp.swift */; };
 		2FC39887BB51AAD0325F4FF5 /* VocalAnchorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */; };
@@ -23,7 +24,9 @@
 		490D69B61FA96531155F00A9 /* PostEpisodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF2FF54A30FF9EBE2D7C710 /* PostEpisodeView.swift */; };
 		53333A62C5491BCF43B66FB0 /* AppStateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABA37CE50A637928523ABAC /* AppStateController.swift */; };
 		543439C3C96AE91E8181587A /* UserProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EA67BECE2FF1AB99E9261 /* UserProfileStore.swift */; };
+		54D07FCE910CB32E50C8C8B1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA04BE6D9CFD17D1C0650CF6 /* SettingsView.swift */; };
 		5633F2D03730DDDDD2690B9A /* HRFeatureExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CCF693589C7D984B62C33B5 /* HRFeatureExtractorTests.swift */; };
+		583D2425F1C9DBC37A32CB19 /* WatchWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997A13E03852E887889994D6 /* WatchWelcomeView.swift */; };
 		5F95347FC0ADB5E382818CBA /* gemma-4-E2B-it.litertlm in Resources */ = {isa = PBXBuildFile; fileRef = 3E546DA971BF53D4E73DD0AD /* gemma-4-E2B-it.litertlm */; };
 		6EE28F6D41C1A2A5F48192F9 /* LiteRTLM in Frameworks */ = {isa = PBXBuildFile; productRef = 744851E9F8C47507C0E03F80 /* LiteRTLM */; };
 		7304CC6F1ABDC0ECCB77AD6E /* GemmaAgentPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67C2E8BAA913AA2120AD39AA /* GemmaAgentPrompts.swift */; };
@@ -74,6 +77,7 @@
 
 /* Begin PBXFileReference section */
 		00AC75A7DD8A32FAEBE0187B /* iPhoneHRFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPhoneHRFetcherTests.swift; sourceTree = "<group>"; };
+		0210CB6777F55ADB0D66AF65 /* WatchPostEpisodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchPostEpisodeView.swift; sourceTree = "<group>"; };
 		02AD595B8E4BA3E824349496 /* LLMInferring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMInferring.swift; sourceTree = "<group>"; };
 		03A309D06331F90619343F06 /* RuleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngineTests.swift; sourceTree = "<group>"; };
 		0471C253A080BD281842B19D /* PanicGuardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PanicGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -108,6 +112,7 @@
 		7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocalAnchorManager.swift; sourceTree = "<group>"; };
 		904735104FA88033E308794F /* EpisodeStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStoreTests.swift; sourceTree = "<group>"; };
 		98A020C493081DE7416B3772 /* GemmaAgentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentTests.swift; sourceTree = "<group>"; };
+		997A13E03852E887889994D6 /* WatchWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWelcomeView.swift; sourceTree = "<group>"; };
 		9FD8A5341B7043801668CCA4 /* WatchSilentInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSilentInvitationView.swift; sourceTree = "<group>"; };
 		A56B77F2C25C6469192A9334 /* GemmaAgentPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentPromptTests.swift; sourceTree = "<group>"; };
 		AAC8CDD195CDDDC988A9118F /* GemmaAgentLiteRTLM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentLiteRTLM.swift; sourceTree = "<group>"; };
@@ -116,6 +121,7 @@
 		B8C6BF3F94B946D3FEAEBEE4 /* InterventionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterventionView.swift; sourceTree = "<group>"; };
 		C4A9B63D6ADD13B941B7D4E5 /* EpisodeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStore.swift; sourceTree = "<group>"; };
 		C8DD091E9FF39E10B676892F /* iPhoneHRFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPhoneHRFetcher.swift; sourceTree = "<group>"; };
+		CA04BE6D9CFD17D1C0650CF6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D740101B5F3071BEA492F3C0 /* WatchingGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchingGuardTests.swift; sourceTree = "<group>"; };
 		D97515AE80125CE9B541804C /* AppStateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateController.swift; sourceTree = "<group>"; };
 		E03FBFA69C68890A885BB00F /* RuleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngine.swift; sourceTree = "<group>"; };
@@ -213,6 +219,7 @@
 				B8C6BF3F94B946D3FEAEBEE4 /* InterventionView.swift */,
 				461AF4E88DDAB4484606FF1C /* OnboardingView.swift */,
 				5BF2FF54A30FF9EBE2D7C710 /* PostEpisodeView.swift */,
+				CA04BE6D9CFD17D1C0650CF6 /* SettingsView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -261,9 +268,11 @@
 			children = (
 				21234190F4B1A1CC284AED34 /* WatchIdleView.swift */,
 				4136613FD1FFC2E0470EC730 /* WatchInterventionView.swift */,
+				0210CB6777F55ADB0D66AF65 /* WatchPostEpisodeView.swift */,
 				2933D4EFF8CFE52F2093CFCC /* WatchRootView.swift */,
 				9FD8A5341B7043801668CCA4 /* WatchSilentInvitationView.swift */,
 				318A86B76EA87CE84FF4AE11 /* WatchWatchingView.swift */,
+				997A13E03852E887889994D6 /* WatchWelcomeView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -516,6 +525,7 @@
 				C1FA5B842F99979F4AF948E1 /* PanicGuardApp.swift in Sources */,
 				490D69B61FA96531155F00A9 /* PostEpisodeView.swift in Sources */,
 				421B5D858E5F268AE1E90F38 /* RuleEngine.swift in Sources */,
+				54D07FCE910CB32E50C8C8B1 /* SettingsView.swift in Sources */,
 				543439C3C96AE91E8181587A /* UserProfileStore.swift in Sources */,
 				2FC39887BB51AAD0325F4FF5 /* VocalAnchorManager.swift in Sources */,
 				445AB0827A90BF852CFF18B2 /* WatchingGuard.swift in Sources */,
@@ -552,9 +562,11 @@
 				A77CB41CE3264F63BEBA4511 /* WatchConnector.swift in Sources */,
 				8DC130B2DFEF3A76CAF9798E /* WatchIdleView.swift in Sources */,
 				987927DE3FB6CB86928E480E /* WatchInterventionView.swift in Sources */,
+				20F2FC0468B7C00F1D1228A9 /* WatchPostEpisodeView.swift in Sources */,
 				9229445530BD7AD2A4DD090F /* WatchRootView.swift in Sources */,
 				39D1C25900F704772F494E67 /* WatchSilentInvitationView.swift in Sources */,
 				F1D000F7104021A45DA83EDB /* WatchWatchingView.swift in Sources */,
+				583D2425F1C9DBC37A32CB19 /* WatchWelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,4 +1,5 @@
 import SwiftUI
+import MessageUI
 
 // MARK: - Supporting types
 
@@ -75,7 +76,9 @@ struct InterventionView: View {
             }
         }
         .sheet(isPresented: $showEmergencySheet) {
-            EmergencyContactSheet(phone: emergencyContactPhone)
+            EmergencyContactSheet(phone: emergencyContactPhone) {
+                controller.send(.interventionDismissed)
+            }
         }
     }
 
@@ -261,40 +264,116 @@ struct InterventionView: View {
 private struct EmergencyContactSheet: View {
     @Environment(\.dismiss) private var dismiss
     let phone: String?
+    let onSend: () -> Void
+
+    @State private var showComposer = false
+
+    private var number: String { phone.map { $0.filter(\.isNumber) } ?? "" }
+
+    private static let messageBody =
+        "I'm not feeling well and may be having a panic attack. Please check on me."
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Contact Someone?")
-                .font(.title2)
-                .fontWeight(.medium)
+        ZStack {
+            Color(red: 0.07, green: 0.07, blue: 0.12).ignoresSafeArea()
 
-            Text("Would you like to notify your emergency contact?")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 20) {
+                Image(systemName: "person.fill.questionmark")
+                    .font(.system(size: 40))
+                    .foregroundColor(.teal)
 
-            HStack(spacing: 16) {
-                Button("Not now") {
-                    dismiss()
+                VStack(spacing: 8) {
+                    Text("Notify someone?")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+
+                    Text("Would you like to send an SMS to your emergency contact?")
+                        .font(.subheadline)
+                        .foregroundColor(Color.gray.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
                 }
-                .foregroundColor(.secondary)
 
-                Button("Send message") {
-                    sendSMS()
-                    dismiss()
+                HStack(spacing: 12) {
+                    Button { dismiss() } label: {
+                        Text("Not now")
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.6))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.white.opacity(0.08))
+                            .cornerRadius(12)
+                    }
+
+                    Button { sendSMS() } label: {
+                        Text("Send")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.teal)
+                            .cornerRadius(12)
+                    }
                 }
-                .foregroundColor(.teal)
-                .fontWeight(.medium)
+                .padding(.horizontal, 24)
+                .padding(.top, 4)
             }
+            .padding(.top, 32)
+            .padding(.bottom, 24)
         }
-        .padding(32)
-        .presentationDetents([.fraction(0.3)])
+        .presentationDetents([.fraction(0.42)])
+        .presentationDragIndicator(.hidden)
+        .sheet(isPresented: $showComposer, onDismiss: {
+            dismiss()
+            onSend()
+        }) {
+            MessageComposeView(
+                recipients: number.isEmpty ? [] : [number],
+                body: Self.messageBody
+            )
+        }
     }
 
     private func sendSMS() {
-        let number = phone.map { $0.filter(\.isNumber) } ?? ""
-        let urlString = number.isEmpty ? "sms:" : "sms:\(number)"
-        guard let url = URL(string: urlString) else { return }
-        UIApplication.shared.open(url)
+        guard MFMessageComposeViewController.canSendText() else {
+            dismiss()
+            onSend()
+            return
+        }
+        showComposer = true
+    }
+}
+
+// MARK: - MFMessageComposeViewController wrapper
+
+private struct MessageComposeView: UIViewControllerRepresentable {
+    let recipients: [String]
+    let body: String
+    @Environment(\.dismiss) private var dismiss
+
+    func makeCoordinator() -> Coordinator { Coordinator(dismiss: dismiss) }
+
+    func makeUIViewController(context: Context) -> MFMessageComposeViewController {
+        let vc = MFMessageComposeViewController()
+        vc.recipients = recipients
+        vc.body = body
+        vc.messageComposeDelegate = context.coordinator
+        return vc
+    }
+
+    func updateUIViewController(_ uiViewController: MFMessageComposeViewController, context: Context) {}
+
+    final class Coordinator: NSObject, MFMessageComposeViewControllerDelegate {
+        private let dismiss: DismissAction
+        init(dismiss: DismissAction) { self.dismiss = dismiss }
+
+        func messageComposeViewController(
+            _ controller: MFMessageComposeViewController,
+            didFinishWith result: MessageComposeResult
+        ) {
+            dismiss()
+        }
     }
 }

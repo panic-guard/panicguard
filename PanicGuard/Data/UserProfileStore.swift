@@ -20,6 +20,16 @@ struct UserProfile: Codable, Equatable {
         self.emergencyContactEnabled = emergencyContactEnabled
         self.emergencyContactPhone = emergencyContactPhone
     }
+
+    // Provides defaults for emergencyContact fields absent in older saved data.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        age = try c.decode(Int.self, forKey: .age)
+        baselineHR = try c.decode(Double.self, forKey: .baselineHR)
+        baselineVocalMetrics = try c.decodeIfPresent(VocalMetrics.self, forKey: .baselineVocalMetrics)
+        emergencyContactEnabled = (try? c.decode(Bool.self, forKey: .emergencyContactEnabled)) ?? false
+        emergencyContactPhone = try? c.decode(String.self, forKey: .emergencyContactPhone)
+    }
 }
 
 enum UserProfileStoreError: Error, Equatable {
