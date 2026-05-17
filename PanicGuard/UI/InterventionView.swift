@@ -7,6 +7,7 @@ private enum InterventionPhase {
     case breathing
     case grounding
     case medicalAlert
+    case calm
 }
 
 private struct GroundingPrompt {
@@ -54,6 +55,8 @@ struct InterventionView: View {
                 groundingPhaseView
             case .medicalAlert:
                 medicalAlertView
+            case .calm:
+                calmView
             }
         }
         .onAppear {
@@ -63,6 +66,8 @@ struct InterventionView: View {
             }
             let action = controller.lastInterventionAction
             switch action {
+            case .calm:
+                phase = .calm
             case .groundingExercise:
                 phase = .grounding
             case .medicalAlert:
@@ -255,6 +260,43 @@ struct InterventionView: View {
             .padding(.horizontal, 32)
             .padding(.vertical, 12)
             .background(Color.orange.opacity(0.15))
+            .clipShape(Capsule())
+        }
+        .padding(.horizontal, 32)
+        .padding(.bottom, 48)
+    }
+
+    // MARK: - Calm (low-score triage result)
+
+    private var calmView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "checkmark.circle")
+                .font(.system(size: 64))
+                .foregroundColor(.teal)
+
+            Text("You seem calm")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+
+            Text("Your heart rate and voice patterns don't indicate a panic episode right now. Take a slow breath and carry on.")
+                .font(.body)
+                .foregroundColor(.white.opacity(0.7))
+                .multilineTextAlignment(.center)
+
+            Spacer()
+
+            Button("Close") {
+                controller.send(.interventionDismissed)
+            }
+            .font(.subheadline)
+            .foregroundColor(.teal)
+            .padding(.horizontal, 32)
+            .padding(.vertical, 12)
+            .background(Color.teal.opacity(0.15))
             .clipShape(Capsule())
         }
         .padding(.horizontal, 32)

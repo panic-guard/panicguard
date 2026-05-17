@@ -125,6 +125,7 @@ private struct InterventionBadge: View {
         case .groundingExercise: return "Grounding"
         case .emergencyContact:  return "Emergency"
         case .medicalAlert:      return "Medical"
+        case .calm:              return "Calm"
         case .none:              return "Direct"
         }
     }
@@ -135,6 +136,7 @@ private struct InterventionBadge: View {
         case .groundingExercise: return .cyan
         case .emergencyContact:  return .orange
         case .medicalAlert:      return .red
+        case .calm:              return .green
         case .none:              return .gray
         }
     }

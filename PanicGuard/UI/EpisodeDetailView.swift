@@ -164,6 +164,7 @@ struct EpisodeDetailView: View {
         case .groundingExercise: return "5-4-3-2-1 grounding exercise"
         case .emergencyContact:  return "Emergency contact notified"
         case .medicalAlert:      return "Medical attention suggested"
+        case .calm:              return "No panic detected — reassurance shown"
         case .none:              return "Direct intervention without triage"
         }
     }
@@ -184,6 +185,7 @@ private struct InterventionBadgeLarge: View {
         case .groundingExercise: return "Grounding"
         case .emergencyContact:  return "Emergency"
         case .medicalAlert:      return "Medical"
+        case .calm:              return "Calm"
         case .none:              return "Direct"
         }
     }
@@ -194,6 +196,7 @@ private struct InterventionBadgeLarge: View {
         case .groundingExercise: return .cyan
         case .emergencyContact:  return .orange
         case .medicalAlert:      return .red
+        case .calm:              return .green
         case .none:              return .gray
         }
     }

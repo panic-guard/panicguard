@@ -7,7 +7,8 @@ enum InterventionAction: String, Codable, Equatable {
     case groundingExercise
     case emergencyContact
     case medicalAlert
-    case none
+    case calm   // triage completed with low scores — reassurance only
+    case none   // direct intervention, no triage
 }
 
 final class RuleEngine: RuleEngineProtocol {
@@ -28,6 +29,6 @@ final class RuleEngine: RuleEngineProtocol {
         if result.likelihoodPanic >= 0.40 {
             return .groundingExercise
         }
-        return .none
+        return .calm
     }
 }

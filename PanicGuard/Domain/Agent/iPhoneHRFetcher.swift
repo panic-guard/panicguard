@@ -10,6 +10,8 @@ struct iPhoneHRFetcher: HRFetching {
 
     // Returns nil if no recent HR samples exist (Watch not worn / not synced).
     // Returning nil prevents GemmaAgent from receiving a misleading 0 BPM payload.
+    // HR window is 30 min — Watch samples every ~5 min at rest so a 5-min window
+    // often returns empty due to sync timing.
     func fetch() async -> HRFeaturePayload? {
         await requestAuthorizationIfNeeded()
         let hrSamples = await fetchHRSamples()
@@ -31,7 +33,7 @@ struct iPhoneHRFetcher: HRFetching {
               let hrType = HKQuantityType.quantityType(forIdentifier: .heartRate)
         else { return [] }
 
-        let start = Date().addingTimeInterval(-300)
+        let start = Date().addingTimeInterval(-1800)  // 30 min — covers Watch's ~5-min sampling interval
         let predicate = HKQuery.predicateForSamples(withStart: start, end: .now)
         let sortDesc = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
 
