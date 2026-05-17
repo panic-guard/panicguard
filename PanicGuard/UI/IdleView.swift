@@ -7,6 +7,7 @@ struct IdleView: View {
     @State private var isFetching = false
     @State private var showNoWatchAlert = false
     @State private var showSettings = false
+    @State private var showHistory = false
 
     private let fetcher = iPhoneHRFetcher()
 
@@ -17,7 +18,16 @@ struct IdleView: View {
             // Settings gear — top right
             VStack {
                 HStack {
+                    Button { showHistory = true } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 18, weight: .light))
+                            .foregroundColor(Color.gray.opacity(0.5))
+                    }
+                    .padding(.top, 60)
+                    .padding(.leading, 24)
+
                     Spacer()
+
                     Button { showSettings = true } label: {
                         Image(systemName: "gearshape")
                             .font(.system(size: 18, weight: .light))
@@ -114,6 +124,9 @@ struct IdleView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $showHistory) {
+            EpisodeHistoryView()
         }
     }
 }

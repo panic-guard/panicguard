@@ -5,6 +5,8 @@ struct PostEpisodeView: View {
     @State private var selectedRating: Int? = nil
     @State private var contentOpacity: Double = 0
 
+    private let episodeStore = EpisodeStore()
+
     private let ratingLabels = ["1", "2", "3", "4", "5"]
     private let scaleLabels = ("Not great", "Much better")
 
@@ -64,6 +66,7 @@ struct PostEpisodeView: View {
                 Spacer()
 
                 Button {
+                    saveEpisode()
                     controller.send(.logComplete)
                 } label: {
                     Text("Save & Close")
@@ -86,5 +89,14 @@ struct PostEpisodeView: View {
             .animation(.easeIn(duration: 0.6), value: contentOpacity)
         }
         .onAppear { contentOpacity = 1 }
+    }
+
+    private func saveEpisode() {
+        let episode = Episode(
+            triage: controller.lastTriageResult,
+            intervention: controller.lastInterventionAction,
+            rating: selectedRating
+        )
+        try? episodeStore.save(episode)
     }
 }

@@ -17,19 +17,26 @@ final class EpisodeStoreTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeEpisode(
-        date: Date = .now,
-        panicLikelihood: Double = 0.8,
-        intervention: InterventionAction = .breathingGuide,
-        userNote: String? = nil
-    ) -> Episode {
-        let triage = TriageResult(
-            likelihoodPanic: panicLikelihood,
-            likelihoodPhysicalAnomaly: 0.1,
-            confidence: .high,
+    private func makeTriage(
+        panic: Double = 0.8,
+        physical: Double = 0.1,
+        confidence: TriageResult.Confidence = .high
+    ) -> TriageResult {
+        TriageResult(
+            likelihoodPanic: panic,
+            likelihoodPhysicalAnomaly: physical,
+            confidence: confidence,
             reasoningSummary: "test"
         )
-        return Episode(id: UUID(), date: date, triage: triage, intervention: intervention, userNote: userNote)
+    }
+
+    private func makeEpisode(
+        date: Date = .now,
+        triage: TriageResult? = nil,
+        intervention: InterventionAction = .breathingGuide,
+        rating: Int? = nil
+    ) -> Episode {
+        Episode(id: UUID(), date: date, triage: triage ?? makeTriage(), intervention: intervention, rating: rating)
     }
 
     // MARK: - save / fetchAll round-trip
@@ -73,32 +80,14 @@ final class EpisodeStoreTests: XCTestCase {
     }
 
     func test_save_preservesTriageResult_allFields() throws {
-        let triage = TriageResult(
-            likelihoodPanic: 0.92,
-            likelihoodPhysicalAnomaly: 0.05,
-            confidence: .medium,
-            reasoningSummary: "elevated HR, stationary, slow speech"
-        )
+        let triage = makeTriage(panic: 0.92, physical: 0.05, confidence: .medium)
         let episode = Episode(date: .now, triage: triage, intervention: .breathingGuide)
         try sut.save(episode)
 
-        let fetched = try sut.fetchAll()[0]
-        XCTAssertEqual(fetched.triage.likelihoodPanic, 0.92, accuracy: 0.001)
-        XCTAssertEqual(fetched.triage.likelihoodPhysicalAnomaly, 0.05, accuracy: 0.001)
-        XCTAssertEqual(fetched.triage.confidence, .medium)
-        XCTAssertEqual(fetched.triage.reasoningSummary, "elevated HR, stationary, slow speech")
-    }
-
-    func test_save_preservesUserNote() throws {
-        let ep = makeEpisode(userNote: "felt very anxious at work")
-        try sut.save(ep)
-        XCTAssertEqual(try sut.fetchAll()[0].userNote, "felt very anxious at work")
-    }
-
-    func test_save_preservesNilUserNote() throws {
-        let ep = makeEpisode(userNote: nil)
-        try sut.save(ep)
-        XCTAssertNil(try sut.fetchAll()[0].userNote)
+        let fetched = try XCTUnwrap(try sut.fetchAll()[0].triage)
+        XCTAssertEqual(fetched.likelihoodPanic, 0.92, accuracy: 0.001)
+        XCTAssertEqual(fetched.likelihoodPhysicalAnomaly, 0.05, accuracy: 0.001)
+        XCTAssertEqual(fetched.confidence, .medium)
     }
 
     func test_save_preservesDate() throws {
@@ -112,16 +101,11 @@ final class EpisodeStoreTests: XCTestCase {
     func test_triageResult_confidence_allVariants() throws {
         let variants: [TriageResult.Confidence] = [.high, .medium, .low]
         for confidence in variants {
-            let triage = TriageResult(
-                likelihoodPanic: 0.5,
-                likelihoodPhysicalAnomaly: 0.1,
-                confidence: confidence,
-                reasoningSummary: "test"
-            )
+            let triage = makeTriage(confidence: confidence)
             try sut.save(Episode(date: .now, triage: triage, intervention: .none))
         }
         let fetched = try sut.fetchAll()
-        let fetchedConfidences = Set(fetched.map(\.triage.confidence))
+        let fetchedConfidences = Set(fetched.compactMap(\.triage?.confidence))
         XCTAssertEqual(fetchedConfidences, Set(variants))
     }
 
@@ -129,5 +113,51 @@ final class EpisodeStoreTests: XCTestCase {
         let store2 = EpisodeStore(inMemory: true)
         try sut.save(makeEpisode())
         XCTAssertTrue(try store2.fetchAll().isEmpty)
+    }
+
+    // MARK: - Rating round-trip
+
+    func test_save_preservesRating() throws {
+        let ep = makeEpisode(rating: 4)
+        try sut.save(ep)
+        XCTAssertEqual(try sut.fetchAll()[0].rating, 4)
+    }
+
+    func test_save_preservesNilRating() throws {
+        let ep = makeEpisode(rating: nil)
+        try sut.save(ep)
+        XCTAssertNil(try sut.fetchAll()[0].rating)
+    }
+
+    func test_save_preservesAllRatingValues() throws {
+        for rating in 1...5 {
+            try sut.save(makeEpisode(rating: rating))
+        }
+        let fetched = try sut.fetchAll()
+        let ratings = Set(fetched.compactMap(\.rating))
+        XCTAssertEqual(ratings, Set(1...5))
+    }
+
+    // MARK: - Nil triage (direct intervention path)
+
+    func test_save_nilTriage_roundTrip() throws {
+        let ep = Episode(date: .now, triage: nil, intervention: .groundingExercise, rating: 3)
+        try sut.save(ep)
+        let fetched = try sut.fetchAll()[0]
+        XCTAssertNil(fetched.triage)
+        XCTAssertEqual(fetched.intervention, .groundingExercise)
+        XCTAssertEqual(fetched.rating, 3)
+    }
+
+    func test_save_mixedTriagePresence_bothRetrievable() throws {
+        let withTriage = Episode(date: Date(timeIntervalSinceNow: -10), triage: makeTriage(), intervention: .breathingGuide)
+        let withoutTriage = Episode(date: .now, triage: nil, intervention: .none)
+        try sut.save(withTriage)
+        try sut.save(withoutTriage)
+
+        let fetched = try sut.fetchAll()
+        XCTAssertEqual(fetched.count, 2)
+        XCTAssertNotNil(fetched[1].triage)
+        XCTAssertNil(fetched[0].triage)
     }
 }

@@ -4,16 +4,16 @@ import CoreData
 struct Episode: Identifiable, Codable {
     let id: UUID
     let date: Date
-    let triage: TriageResult
+    let triage: TriageResult?
     let intervention: InterventionAction
-    let userNote: String?
+    let rating: Int?
 
-    init(id: UUID = UUID(), date: Date = .now, triage: TriageResult, intervention: InterventionAction, userNote: String? = nil) {
+    init(id: UUID = UUID(), date: Date = .now, triage: TriageResult? = nil, intervention: InterventionAction, rating: Int? = nil) {
         self.id = id
         self.date = date
         self.triage = triage
         self.intervention = intervention
-        self.userNote = userNote
+        self.rating = rating
     }
 }
 
@@ -35,9 +35,9 @@ final class EpisodeStore: EpisodeStoring {
         let mo = NSManagedObject(entity: entity, insertInto: ctx)
         mo.setValue(episode.id, forKey: "id")
         mo.setValue(episode.date, forKey: "date")
-        mo.setValue(try JSONEncoder().encode(episode.triage), forKey: "triageData")
+        mo.setValue(episode.triage.flatMap { try? JSONEncoder().encode($0) }, forKey: "triageData")
         mo.setValue(episode.intervention.rawValue, forKey: "interventionRaw")
-        mo.setValue(episode.userNote, forKey: "userNote")
+        mo.setValue(episode.rating.map { NSNumber(value: $0) }, forKey: "rating")
         try ctx.save()
     }
 
@@ -46,15 +46,15 @@ final class EpisodeStore: EpisodeStoring {
         let request = NSFetchRequest<NSManagedObject>(entityName: "EpisodeMO")
         request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
         return try ctx.fetch(request).map { mo in
-            let triageData = mo.value(forKey: "triageData") as! Data
-            let triage = try JSONDecoder().decode(TriageResult.self, from: triageData)
+            let triage: TriageResult? = (mo.value(forKey: "triageData") as? Data)
+                .flatMap { try? JSONDecoder().decode(TriageResult.self, from: $0) }
             let interventionRaw = mo.value(forKey: "interventionRaw") as! String
             return Episode(
                 id: mo.value(forKey: "id") as! UUID,
                 date: mo.value(forKey: "date") as! Date,
                 triage: triage,
                 intervention: InterventionAction(rawValue: interventionRaw) ?? .none,
-                userNote: mo.value(forKey: "userNote") as? String
+                rating: (mo.value(forKey: "rating") as? NSNumber)?.intValue
             )
         }
     }
@@ -90,9 +90,9 @@ final class EpisodeStore: EpisodeStoring {
         entity.properties = [
             attr("id", .UUIDAttributeType),
             attr("date", .dateAttributeType),
-            attr("triageData", .binaryDataAttributeType),
+            attr("triageData", .binaryDataAttributeType, isOptional: true),
             attr("interventionRaw", .stringAttributeType),
-            attr("userNote", .stringAttributeType, isOptional: true)
+            attr("rating", .integer16AttributeType, isOptional: true)
         ]
 
         let model = NSManagedObjectModel()

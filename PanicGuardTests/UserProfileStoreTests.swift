@@ -118,7 +118,7 @@ final class UserProfileStoreTests: XCTestCase {
         try sut.save(profile)
         let loaded = try sut.load()
         XCTAssertEqual(loaded.emergencyContactEnabled, true)
-        XCTAssertEqual(loaded.emergencyContactPhone, "+821012345678")
+        XCTAssertEqual(loaded.emergencyContactPhone, "+14155550123")
     }
 
     func test_saveAndLoad_nilEmergencyContactPhone_roundTrip() throws {

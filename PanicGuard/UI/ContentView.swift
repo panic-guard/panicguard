@@ -11,9 +11,9 @@ struct ContentView: View {
             case .idle:
                 IdleView()
             case .watching:
-                IdleView()
+                SilentInvitationView()
             case .silentInvitation:
-                IdleView()
+                SilentInvitationView()
             case .activeTriage:
                 ActiveTriageView()
             case .intervention:

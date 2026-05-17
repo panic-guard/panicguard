@@ -14,6 +14,9 @@ final class AppStateController: ObservableObject {
 
     private let agentFactory: () throws -> any PanicTriageAgentProtocol
     private let ruleEngine: RuleEngineProtocol
+    private let watchingGuard: WatchingGuardProtocol
+    private let hrFetcher: any HRFetching
+    private let profileStore: UserProfileStoring
 
     // MARK: - Triage state (activeTriage window only)
 
@@ -23,7 +26,6 @@ final class AppStateController: ObservableObject {
     private var isDemoMode = false
     private var demoResultIndex = 0
 
-    // Cycles through all 4 RuleEngine outcomes so every intervention screen can be demoed.
     private static let demoTriageResults: [TriageResult] = [
         TriageResult(likelihoodPanic: 0.55, likelihoodPhysicalAnomaly: 0.10, confidence: .medium,
                      reasoningSummary: "Demo: moderate panic likelihood → grounding exercise"),
@@ -35,15 +37,24 @@ final class AppStateController: ObservableObject {
                      reasoningSummary: "Demo: physical anomaly → medical alert"),
     ]
 
+    // MARK: - Watching state (polling only while in .watching)
+
+    private var watchingTask: Task<Void, Never>?
+
     // MARK: - Init
 
     init(
         agentFactory: @escaping () throws -> any PanicTriageAgentProtocol,
         ruleEngine: RuleEngineProtocol = RuleEngine(),
+        watchingGuard: WatchingGuardProtocol = WatchingGuard(),
+        hrFetcher: any HRFetching = iPhoneHRFetcher(),
         profileStore: UserProfileStoring = UserProfileStore()
     ) {
         self.agentFactory = agentFactory
         self.ruleEngine = ruleEngine
+        self.watchingGuard = watchingGuard
+        self.hrFetcher = hrFetcher
+        self.profileStore = profileStore
         // Skip onboarding if the user has already completed it.
         self.state = (try? profileStore.load()) != nil ? .idle : .onboarding
     }
@@ -58,8 +69,10 @@ final class AppStateController: ObservableObject {
 
         case (.idle, .hrElevationDetected):
             state = .watching
+            beginWatchingPoll()
 
         case (.watching, .elevationSustained):
+            stopWatchingPoll()
             state = .silentInvitation
             beginPreload()
 
@@ -69,6 +82,7 @@ final class AppStateController: ObservableObject {
 
         case (.silentInvitation, .userDismissed):
             endTriage()
+            stopWatchingPoll()
             state = .idle
 
         case (.silentInvitation, .userRequestedDirectIntervention):
@@ -96,6 +110,7 @@ final class AppStateController: ObservableObject {
 
         case (_, .resetToIdle):
             endTriage()
+            stopWatchingPoll()
             state = .idle
 
         default:
@@ -188,6 +203,37 @@ final class AppStateController: ObservableObject {
         triageTask = nil
         triageAgent = nil  // Releases LlmInference → model memory freed.
         pendingFeatures = nil
+    }
+
+    /// Polls HealthKit every 30 s while in .watching; transitions to .silentInvitation
+    /// when WatchingGuard confirms sustained unexplained elevation.
+    private func beginWatchingPoll() {
+        watchingTask?.cancel()
+        watchingTask = Task { [weak self] in
+            guard let self else { return }
+            let baseline = (try? self.profileStore.load())?.baselineHR ?? 72.0
+            while !Task.isCancelled {
+                if let payload = await self.hrFetcher.fetch() {
+                    let samples = Array(repeating: payload.currentHRMetrics.meanBPM,
+                                       count: max(1, Int(payload.currentHRMetrics.meanBPM / 10)))
+                    let elevated = self.watchingGuard.isSustainedElevation(
+                        hrSamples: samples,
+                        baseline: baseline,
+                        stepCount: payload.context.stepsLast5Min
+                    )
+                    if elevated {
+                        self.send(.elevationSustained)
+                        return
+                    }
+                }
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+            }
+        }
+    }
+
+    private func stopWatchingPoll() {
+        watchingTask?.cancel()
+        watchingTask = nil
     }
 
     // MARK: - Demo helper

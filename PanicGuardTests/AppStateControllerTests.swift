@@ -18,12 +18,49 @@ private final class FakeTriageAgent: PanicTriageAgentProtocol {
     }
 }
 
+// MARK: - Fake HR fetcher
+
+private struct FakeHRFetcher: HRFetching {
+    let payload: HRFeaturePayload?
+    func fetch() async -> HRFeaturePayload? {
+        await Task.yield()  // Ensure at least one suspension so polling loop yields properly.
+        return payload
+    }
+}
+
+// MARK: - Fake WatchingGuard
+
+private final class FakeWatchingGuard: WatchingGuardProtocol {
+    var shouldElevate = false
+    func isSustainedElevation(hrSamples: [Double], baseline: Double, stepCount: Int) -> Bool {
+        shouldElevate
+    }
+}
+
 // MARK: - Helpers
 
+/// Returns a UserProfileStore backed by a fresh, isolated UserDefaults suite.
+/// Prevents real app data from leaking into tests and causing onboarding-skip.
+private func freshProfileStore() -> UserProfileStore {
+    let suite = "com.panicguard.tests.\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suite)!
+    defaults.removePersistentDomain(forName: suite)
+    return UserProfileStore(defaults: defaults)
+}
+
 @MainActor
-private func makeController(agent: (any PanicTriageAgentProtocol)? = nil) -> AppStateController {
+private func makeController(
+    agent: (any PanicTriageAgentProtocol)? = nil,
+    hrFetcher: (any HRFetching)? = nil,
+    watchingGuard: WatchingGuardProtocol? = nil
+) -> AppStateController {
     let fake = agent ?? FakeTriageAgent()
-    return AppStateController(agentFactory: { fake })
+    return AppStateController(
+        agentFactory: { fake },
+        watchingGuard: watchingGuard ?? WatchingGuard(),
+        hrFetcher: hrFetcher ?? FakeHRFetcher(payload: nil),
+        profileStore: freshProfileStore()
+    )
 }
 
 @MainActor
@@ -163,7 +200,7 @@ final class AppStateControllerTests: XCTestCase {
         let sut = AppStateController(agentFactory: {
             factoryCalls += 1
             return fake
-        })
+        }, profileStore: freshProfileStore())
         // Factory is called at silentInvitation (beginPreload) for early engine warm-up.
         sut.send(.onboardingComplete)
         sut.send(.hrElevationDetected)
@@ -180,7 +217,7 @@ final class AppStateControllerTests: XCTestCase {
         let sut = AppStateController(agentFactory: {
             factoryCalls += 1
             return fake
-        })
+        }, profileStore: freshProfileStore())
 
         // First triage cycle
         advanceToState(.activeTriage, controller: sut)
@@ -303,7 +340,7 @@ final class AppStateControllerTests: XCTestCase {
         let sut = AppStateController(agentFactory: {
             factoryCalls += 1
             return fake
-        })
+        }, profileStore: freshProfileStore())
         sut.send(.onboardingComplete)
         sut.send(.hrElevationDetected)
         sut.send(.elevationSustained)
@@ -321,7 +358,7 @@ final class AppStateControllerTests: XCTestCase {
         let sut = AppStateController(agentFactory: {
             factoryCalls += 1
             return fake
-        })
+        }, profileStore: freshProfileStore())
         sut.send(.onboardingComplete)
         sut.send(.hrElevationDetected)
         sut.send(.elevationSustained)
@@ -341,7 +378,7 @@ final class AppStateControllerTests: XCTestCase {
         let sut = AppStateController(agentFactory: {
             factoryCalls += 1
             return fake
-        })
+        }, profileStore: freshProfileStore())
         sut.send(.onboardingComplete)
         sut.send(.userRequestedManualTriage)
         XCTAssertEqual(sut.state, .activeTriage)
@@ -354,7 +391,7 @@ final class AppStateControllerTests: XCTestCase {
         let sut = AppStateController(agentFactory: {
             factoryCalls += 1
             return fake
-        })
+        }, profileStore: freshProfileStore())
         sut.send(.onboardingComplete)
         sut.send(.userRequestedDirectIntervention)
         XCTAssertEqual(sut.state, .intervention)
@@ -370,7 +407,99 @@ final class AppStateControllerTests: XCTestCase {
         )
         sut.setPendingFeatures(features)
         sut.send(.userRequestedManualTriage)
-        // State reaches activeTriage with features set — no crash, correct state
         XCTAssertEqual(sut.state, .activeTriage)
+    }
+
+    // MARK: - WatchingGuard polling
+
+    func test_hrElevationDetected_startsPollingWithFakeHRFetcher() async {
+        // FakeWatchingGuard set to elevate immediately → polling loop fires elevationSustained.
+        let guard_ = FakeWatchingGuard()
+        guard_.shouldElevate = true
+        let elevatedPayload = HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 150, slopeBPMPerMin: 25),
+            context: .init(isMoving: false, stepsLast5Min: 5)
+        )
+        let fetcher = FakeHRFetcher(payload: elevatedPayload)
+        let sut = makeController(hrFetcher: fetcher, watchingGuard: guard_)
+
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertEqual(sut.state, .watching)
+
+        // Drain the run loop until polling task fires or timeout.
+        for _ in 0..<20 { await Task.yield() }
+
+        XCTAssertEqual(sut.state, .silentInvitation,
+            "When WatchingGuard reports elevation, polling must advance state to silentInvitation")
+    }
+
+    func test_watchingPoll_doesNotElevate_whenGuardReturnsFalse() async {
+        let guard_ = FakeWatchingGuard()
+        guard_.shouldElevate = false
+        let payload = HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 80, slopeBPMPerMin: 2),
+            context: .init(isMoving: false, stepsLast5Min: 5)
+        )
+        let sut = makeController(hrFetcher: FakeHRFetcher(payload: payload), watchingGuard: guard_)
+
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertEqual(sut.state, .watching)
+
+        for _ in 0..<20 { await Task.yield() }
+
+        XCTAssertEqual(sut.state, .watching,
+            "When WatchingGuard reports no elevation, state must remain watching")
+    }
+
+    func test_watchingPoll_doesNotElevate_whenFetcherReturnsNil() async {
+        // No HR data (Watch not worn) → polling must stay quiet.
+        let guard_ = FakeWatchingGuard()
+        guard_.shouldElevate = true
+        let sut = makeController(hrFetcher: FakeHRFetcher(payload: nil), watchingGuard: guard_)
+
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertEqual(sut.state, .watching)
+
+        for _ in 0..<20 { await Task.yield() }
+
+        // Guard would elevate but fetcher returned nil, so loop skips — state stays watching.
+        XCTAssertEqual(sut.state, .watching,
+            "Nil HR payload must not advance state even when WatchingGuard would return true")
+    }
+
+    func test_resetToIdle_fromWatching_cancelsPoll() async {
+        let guard_ = FakeWatchingGuard()
+        guard_.shouldElevate = false
+        let sut = makeController(hrFetcher: FakeHRFetcher(payload: nil), watchingGuard: guard_)
+
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertEqual(sut.state, .watching)
+
+        sut.send(.resetToIdle)
+        XCTAssertEqual(sut.state, .idle)
+
+        // After reset, elevating the guard should no longer affect state.
+        guard_.shouldElevate = true
+        for _ in 0..<20 { await Task.yield() }
+        XCTAssertEqual(sut.state, .idle,
+            "Polling task must be cancelled on resetToIdle — guard changes must not alter state")
+    }
+
+    func test_userDismissed_fromSilentInvitation_cancelsPoll() async {
+        let guard_ = FakeWatchingGuard()
+        guard_.shouldElevate = false
+        let sut = makeController(hrFetcher: FakeHRFetcher(payload: nil), watchingGuard: guard_)
+
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        XCTAssertEqual(sut.state, .silentInvitation)
+
+        sut.send(.userDismissed)
+        XCTAssertEqual(sut.state, .idle)
     }
 }

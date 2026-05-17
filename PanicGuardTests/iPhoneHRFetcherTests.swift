@@ -71,9 +71,34 @@ final class iPhoneHRFetcherTests: XCTestCase {
     }
 }
 
+// MARK: - HRFetching protocol conformance
+
+final class HRFetchingProtocolTests: XCTestCase {
+
+    func test_iPhoneHRFetcher_conformsToHRFetchingProtocol() {
+        // Compile-time check: iPhoneHRFetcher must satisfy HRFetching.
+        let _: any HRFetching = iPhoneHRFetcher()
+        // If this compiles, the protocol is satisfied.
+    }
+
+    func test_mockHRFetcher_conformsToHRFetchingProtocol() {
+        let _: any HRFetching = MockHRFetcher(payload: nil)
+    }
+
+    func test_hrFetching_canBeUsedAsExistential() async {
+        let fetcher: any HRFetching = MockHRFetcher(payload: HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 90, slopeBPMPerMin: 5),
+            context: .init(isMoving: false, stepsLast5Min: 3)
+        ))
+        let result = await fetcher.fetch()
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.currentHRMetrics.meanBPM, 90)
+    }
+}
+
 // MARK: - MockHRFetcher
 
-struct MockHRFetcher {
+struct MockHRFetcher: HRFetching {
     let payload: HRFeaturePayload?
     func fetch() async -> HRFeaturePayload? { payload }
 }

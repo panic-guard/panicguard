@@ -102,14 +102,16 @@ struct SettingsView: View {
 
     private func saveAndDismiss() {
         guard let current = try? store.load() else { dismiss(); return }
+        let phone = emergencyContactPhone.isEmpty ? nil : emergencyContactPhone
         let updated = UserProfile(
             age: current.age,
             baselineHR: current.baselineHR,
             baselineVocalMetrics: current.baselineVocalMetrics,
             emergencyContactEnabled: emergencyContactEnabled,
-            emergencyContactPhone: emergencyContactPhone.isEmpty ? nil : emergencyContactPhone
+            emergencyContactPhone: phone
         )
         try? store.save(updated)
+        PhoneConnector.shared.pushProfile(ecPhone: emergencyContactEnabled ? phone : nil)
         dismiss()
     }
 }

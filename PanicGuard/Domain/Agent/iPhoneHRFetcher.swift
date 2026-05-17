@@ -1,16 +1,29 @@
 import HealthKit
 
-struct iPhoneHRFetcher {
+protocol HRFetching {
+    func fetch() async -> HRFeaturePayload?
+}
+
+struct iPhoneHRFetcher: HRFetching {
     private let store = HKHealthStore()
     private let extractor = HRFeatureExtractor()
 
     // Returns nil if no recent HR samples exist (Watch not worn / not synced).
     // Returning nil prevents GemmaAgent from receiving a misleading 0 BPM payload.
     func fetch() async -> HRFeaturePayload? {
+        await requestAuthorizationIfNeeded()
         let hrSamples = await fetchHRSamples()
         guard !hrSamples.isEmpty else { return nil }
         let stepCount = await fetchStepCount()
         return extractor.extract(hrSamples: hrSamples, stepCount: stepCount)
+    }
+
+    private func requestAuthorizationIfNeeded() async {
+        guard HKHealthStore.isHealthDataAvailable(),
+              let hrType = HKQuantityType.quantityType(forIdentifier: .heartRate),
+              let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return }
+        let readTypes: Set<HKObjectType> = [hrType, stepType]
+        try? await store.requestAuthorization(toShare: [], read: readTypes)
     }
 
     private func fetchHRSamples() async -> [Double] {
