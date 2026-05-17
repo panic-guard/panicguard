@@ -13,6 +13,8 @@ enum AppState: String, Equatable, CaseIterable {
 
 /// Watch-relevant subset of the iPhone AppStateEvent.
 enum AppStateEvent {
+    case hrElevationDetected
+    case elevationSustained
     case userDismissed
     case userRequestedDirectIntervention
     case interventionDismissed

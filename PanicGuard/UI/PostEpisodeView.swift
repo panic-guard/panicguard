@@ -65,23 +65,34 @@ struct PostEpisodeView: View {
 
                 Spacer()
 
-                Button {
-                    saveEpisode()
-                    controller.send(.logComplete)
-                } label: {
-                    Text("Save & Close")
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(selectedRating == nil ? .gray : .black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(selectedRating == nil
-                                    ? Color.gray.opacity(0.18)
-                                    : Color.teal)
-                        .cornerRadius(16)
-                        .animation(.easeOut(duration: 0.25), value: selectedRating)
+                VStack(spacing: 12) {
+                    Button {
+                        saveEpisode()
+                        controller.send(.logComplete)
+                    } label: {
+                        Text("Skip")
+                            .font(.subheadline)
+                            .foregroundColor(Color.gray.opacity(0.55))
+                    }
+
+                    Button {
+                        saveEpisode()
+                        controller.send(.logComplete)
+                    } label: {
+                        Text("Save & Close")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(selectedRating == nil ? .gray : .black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(selectedRating == nil
+                                        ? Color.gray.opacity(0.18)
+                                        : Color.teal)
+                            .cornerRadius(16)
+                            .animation(.easeOut(duration: 0.25), value: selectedRating)
+                    }
+                    .disabled(selectedRating == nil)
                 }
-                .disabled(selectedRating == nil)
                 .padding(.horizontal, 40)
                 .padding(.bottom, 56)
             }

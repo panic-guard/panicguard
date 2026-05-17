@@ -5,8 +5,8 @@ struct EpisodeHistoryView: View {
 
     private let store = EpisodeStore()
     @State private var episodes: [Episode] = []
-    @State private var showExportSheet = false
-    @State private var exportURL: URL? = nil
+    @State private var selectedEpisode: Episode? = nil
+    @State private var csvURL: URL? = nil
 
     var body: some View {
         NavigationStack {
@@ -25,9 +25,15 @@ struct EpisodeHistoryView: View {
                 } else {
                     List {
                         ForEach(episodes) { episode in
-                            EpisodeRowView(episode: episode)
-                                .listRowBackground(Color.white.opacity(0.05))
-                                .listRowSeparatorTint(Color.white.opacity(0.08))
+                            Button { selectedEpisode = episode } label: {
+                                EpisodeRowView(episode: episode)
+                            }
+                            .listRowBackground(Color.white.opacity(0.05))
+                            .listRowSeparatorTint(Color.white.opacity(0.08))
+                        }
+                        .onDelete { indexSet in
+                            for idx in indexSet { try? store.delete(episodes[idx]) }
+                            refresh()
                         }
                     }
                     .listStyle(.plain)
@@ -44,11 +50,8 @@ struct EpisodeHistoryView: View {
                         .foregroundColor(.teal)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !episodes.isEmpty {
-                        Button {
-                            exportURL = buildCSV(episodes: episodes)
-                            showExportSheet = exportURL != nil
-                        } label: {
+                    if !episodes.isEmpty, let url = csvURL {
+                        ShareLink(item: url, preview: SharePreview("PanicGuard Episodes")) {
                             Image(systemName: "square.and.arrow.up")
                                 .foregroundColor(.teal)
                         }
@@ -56,12 +59,18 @@ struct EpisodeHistoryView: View {
                 }
             }
         }
-        .onAppear { episodes = (try? store.fetchAll()) ?? [] }
-        .sheet(isPresented: $showExportSheet, onDismiss: { exportURL = nil }) {
-            if let url = exportURL {
-                ShareSheet(items: [url])
+        .onAppear { refresh() }
+        .sheet(item: $selectedEpisode) { episode in
+            EpisodeDetailView(episode: episode) {
+                try? store.delete(episode)
+                refresh()
             }
         }
+    }
+
+    private func refresh() {
+        episodes = (try? store.fetchAll()) ?? []
+        csvURL = episodes.isEmpty ? nil : buildCSV(episodes: episodes)
     }
 }
 
@@ -103,6 +112,7 @@ private struct EpisodeRowView: View {
             }
         }
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
     }
 }
 
@@ -144,7 +154,7 @@ private struct InterventionBadge: View {
 // MARK: - CSV Export
 
 private func buildCSV(episodes: [Episode]) -> URL? {
-    var lines = ["date,time,intervention,panic_likelihood,physical_anomaly_likelihood,confidence,rating"]
+    var lines = ["date,time,intervention,panic_likelihood,physical_anomaly_likelihood,confidence,reasoning,rating"]
     let dateFmt = DateFormatter()
     dateFmt.dateFormat = "yyyy-MM-dd"
     let timeFmt = DateFormatter()
@@ -157,7 +167,8 @@ private func buildCSV(episodes: [Episode]) -> URL? {
         let physical = e.triage.map { String(format: "%.2f", $0.likelihoodPhysicalAnomaly) } ?? ""
         let confidence = e.triage?.confidence.rawValue ?? ""
         let rating = e.rating.map { String($0) } ?? ""
-        lines.append("\(date),\(time),\(e.intervention.rawValue),\(panic),\(physical),\(confidence),\(rating)")
+        let reasoning = e.triage.map { csvQuote($0.reasoningSummary) } ?? ""
+        lines.append("\(date),\(time),\(e.intervention.rawValue),\(panic),\(physical),\(confidence),\(reasoning),\(rating)")
     }
 
     let csv = lines.joined(separator: "\n")
@@ -166,14 +177,7 @@ private func buildCSV(episodes: [Episode]) -> URL? {
     return (try? csv.write(to: url, atomically: true, encoding: .utf8)) == nil ? nil : url
 }
 
-// MARK: - UIActivityViewController wrapper
-
-private struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+/// Wraps a string in double quotes and escapes internal quotes per RFC 4180.
+private func csvQuote(_ value: String) -> String {
+    "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
 }

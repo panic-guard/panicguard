@@ -38,7 +38,8 @@ targets:
       path: PanicGuard/App/Info.plist
       properties:
         CFBundleDisplayName: PanicGuard
-        UILaunchStoryboardName: LaunchScreen
+        UILaunchScreen:
+          UIColorName: LaunchBackground
         NSHealthShareUsageDescription: "PanicGuard reads heart rate to detect panic episodes."
         NSHealthUpdateUsageDescription: "PanicGuard writes episode records to your health data."
         NSMicrophoneUsageDescription: "PanicGuard records your voice to analyze the Vocal Anchor."
@@ -72,6 +73,7 @@ targets:
         OTHER_LDFLAGS: $(inherited)
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: $(inherited)
         EMBEDDED_CONTENT_CONTAINS_SWIFT: $(inherited)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
   # ── watchOS Watch App ─────────────────────────────────────────────────────
   PanicGuardWatchApp:

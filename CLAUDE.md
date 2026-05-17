@@ -94,9 +94,9 @@ Multiple entry paths — not strictly linear. All paths through `intervention` m
 | `silentInvitation` | 2 min sustained unexplained elevation → soft haptic on Watch. User chooses: dismiss / direct intervention / vocal anchor triage |
 | `activeTriage` | Phone wakes. Vocal Anchor displayed + recorded. Step 1+2+3 runs. |
 | `intervention` | Phase-based UI driven by `InterventionAction`: breathing guide → grounding exercise (sequential for acute panic), grounding-only (moderate), or medical alert message. 60 BPM haptic anchor. |
-| `postEpisodeLog` | Quick user check-in, save episode to Core Data |
+| `postEpisodeLog` | Quick user check-in (1–5 rating), save episode to Core Data. Skip saves the episode without a rating. |
 
-`AppStateController` owns the state. `nextStateForDemo()` is a demo-only method to cycle states for UI testing without real sensors.
+`AppStateController` owns the state.
 
 ## Watch role
 
@@ -158,7 +158,8 @@ Maps `TriageResult` → `InterventionAction` via a fixed priority-ordered thresh
 
 ```
 PanicGuard/
-  App/              PanicGuardApp.swift, Info.plist, PanicGuard.entitlements
+  App/              PanicGuardApp.swift, Info.plist, PanicGuard.entitlements,
+                    Assets.xcassets (AppIcon + LaunchBackground color)
   Domain/
     StateMachine/   AppState.swift, AppStateController.swift
     Agent/          AgentProtocols.swift, HRFeatureExtractor.swift,
@@ -204,3 +205,5 @@ PanicGuardWatchTests/   HRSamplerTests
 - `InterventionAction` is `String, Codable, Equatable` — needed for Core Data serialization.
 - `AppStateController` exposes `@Published lastInterventionAction: InterventionAction` set by `RuleEngine` on `triageComplete`. Direct-intervention paths leave it as `.none` (UI defaults to breathing → grounding).
 - `UserProfile.emergencyContactEnabled` gates the emergency contact sheet in `InterventionView`. Defaults to `false` until onboarding stores the preference.
+- Emergency contact phone is required (digits only) when `emergencyContactEnabled` is `true`. Save/Continue is disabled until a non-empty phone is entered. Both `SettingsView` and `OnboardingView.ProfileStepView` enforce this.
+- Launch screen uses `UILaunchScreen` dictionary (iOS 14+ API) with a named color `LaunchBackground` in `Assets.xcassets`. No storyboard file required. The old `UILaunchStoryboardName` key caused ~50 s startup delay when the referenced file was missing.

@@ -47,6 +47,7 @@ A deterministic RuleEngine then maps those scores to an intervention, ensuring t
 - **Multiple intervention modes** — breathing guide, grounding exercise, emergency contact alert, or medical information depending on triage result
 - **Multiple entry paths** — Watch haptic flow, manual triage from idle, or direct intervention bypassing triage entirely
 - **Episode log** — post-episode check-in saved locally to Core Data; never synced externally
+- **Episode history** — browse, view AI reasoning detail, delete, and export all episodes as CSV
 
 ---
 

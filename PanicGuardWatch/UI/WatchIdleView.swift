@@ -7,11 +7,7 @@ struct WatchIdleView: View {
     @State private var pulseScale: CGFloat = 1.0
     @State private var didRequestAuth = false
 
-    #if targetEnvironment(simulator)
-    private let sampler = HRSampler(mode: .mock(.panic))
-    #else
     private let sampler = HRSampler(mode: .real)
-    #endif
 
     var body: some View {
         ZStack {

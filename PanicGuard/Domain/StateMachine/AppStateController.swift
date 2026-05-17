@@ -23,19 +23,6 @@ final class AppStateController: ObservableObject {
     private var triageAgent: (any PanicTriageAgentProtocol)?
     private var triageTask: Task<Void, Never>?
     private var pendingFeatures: HRFeaturePayload?
-    private var isDemoMode = false
-    private var demoResultIndex = 0
-
-    private static let demoTriageResults: [TriageResult] = [
-        TriageResult(likelihoodPanic: 0.55, likelihoodPhysicalAnomaly: 0.10, confidence: .medium,
-                     reasoningSummary: "Demo: moderate panic likelihood → grounding exercise"),
-        TriageResult(likelihoodPanic: 0.80, likelihoodPhysicalAnomaly: 0.10, confidence: .medium,
-                     reasoningSummary: "Demo: high panic likelihood → breathing guide"),
-        TriageResult(likelihoodPanic: 0.92, likelihoodPhysicalAnomaly: 0.05, confidence: .high,
-                     reasoningSummary: "Demo: near-certain panic, high confidence → emergency contact"),
-        TriageResult(likelihoodPanic: 0.25, likelihoodPhysicalAnomaly: 0.80, confidence: .high,
-                     reasoningSummary: "Demo: physical anomaly → medical alert"),
-    ]
 
     // MARK: - Watching state (polling only while in .watching)
 
@@ -164,10 +151,12 @@ final class AppStateController: ObservableObject {
     }
 
     /// Ensures the agent exists when entering activeTriage (fallback if preload wasn't triggered).
+    /// Also kicks off preload() so the model starts loading while the user records the vocal anchor.
     private func beginTriage() {
         guard triageAgent == nil else { return }
         do {
             triageAgent = try agentFactory()
+            Task { await self.triageAgent?.preload() }
         } catch {
             state = .idle
         }
@@ -175,13 +164,7 @@ final class AppStateController: ObservableObject {
 
     /// Starts the async triage task once the vocal anchor is available.
     private func launchTriageTask(anchor: VocalAnchorResult) {
-        guard let agent = triageAgent else {
-            guard isDemoMode else { return }
-            let demoResult = Self.demoTriageResults[demoResultIndex % Self.demoTriageResults.count]
-            demoResultIndex += 1
-            send(.triageComplete(demoResult))
-            return
-        }
+        guard let agent = triageAgent else { send(.resetToIdle); return }
         let features = pendingFeatures ?? HRFeaturePayload(
             currentHRMetrics: .init(meanBPM: 0, slopeBPMPerMin: 0),
             context: .init(isMoving: false, stepsLast5Min: 0)
@@ -236,24 +219,4 @@ final class AppStateController: ObservableObject {
         watchingTask = nil
     }
 
-    // MARK: - Demo helper
-
-    /// Demo-only: cycles through states without real sensors.
-    func nextStateForDemo() {
-        isDemoMode = true
-        switch state {
-        case .onboarding:       state = .idle
-        case .idle:             state = .watching
-        case .watching:         state = .silentInvitation
-        case .silentInvitation: state = .activeTriage
-        case .activeTriage:
-            let demoResult = Self.demoTriageResults[demoResultIndex % Self.demoTriageResults.count]
-            demoResultIndex += 1
-            lastTriageResult = demoResult
-            lastInterventionAction = ruleEngine.selectIntervention(for: demoResult)
-            state = .intervention
-        case .intervention:     state = .postEpisodeLog
-        case .postEpisodeLog:   isDemoMode = false; state = .idle
-        }
-    }
 }

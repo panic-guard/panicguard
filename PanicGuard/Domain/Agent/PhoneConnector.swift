@@ -30,6 +30,20 @@ final class PhoneConnector: NSObject, WCSessionDelegate {
         session.transferUserInfo(info)
     }
 
+    /// Pushes iPhone state to the Watch so it mirrors watching/silentInvitation/idle.
+    /// Uses sendMessage (foreground) when reachable, falls back to transferUserInfo (background).
+    func pushWatchState(_ stateName: String) {
+        guard session.activationState == .activated,
+              session.isPaired,
+              session.isWatchAppInstalled else { return }
+        let payload: [String: Any] = ["type": "watchState", "state": stateName]
+        if session.isReachable {
+            session.sendMessage(payload, replyHandler: nil, errorHandler: nil)
+        } else {
+            session.transferUserInfo(payload)
+        }
+    }
+
     // MARK: - WCSessionDelegate
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}

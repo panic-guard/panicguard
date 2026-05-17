@@ -18,6 +18,16 @@ private final class FakeTriageAgent: PanicTriageAgentProtocol {
     }
 }
 
+// MARK: - Spy agent (tracks preload calls)
+
+private final class SpyTriageAgent: PanicTriageAgentProtocol {
+    var preloadCalled = false
+    func preload() async { preloadCalled = true }
+    func runTriage(features: HRFeaturePayload, vocalAnchor: VocalAnchorResult) async throws -> TriageResult {
+        TriageResult(likelihoodPanic: 0.5, likelihoodPhysicalAnomaly: 0.1, confidence: .medium, reasoningSummary: "spy")
+    }
+}
+
 // MARK: - Fake HR fetcher
 
 private struct FakeHRFetcher: HRFetching {
@@ -487,6 +497,24 @@ final class AppStateControllerTests: XCTestCase {
         for _ in 0..<20 { await Task.yield() }
         XCTAssertEqual(sut.state, .idle,
             "Polling task must be cancelled on resetToIdle — guard changes must not alter state")
+    }
+
+    // MARK: - beginTriage calls preload (manual triage path has no preload window)
+
+    func test_manualTriage_fromIdle_callsPreloadOnAgent() async {
+        var spyRef: SpyTriageAgent?
+        let sut = AppStateController(agentFactory: {
+            let agent = SpyTriageAgent()
+            spyRef = agent
+            return agent
+        }, profileStore: freshProfileStore())
+        sut.send(.onboardingComplete)
+        sut.send(.userRequestedManualTriage)
+
+        for _ in 0..<20 { await Task.yield() }
+
+        XCTAssertTrue(spyRef?.preloadCalled == true,
+            "beginTriage must call preload() so the LLM starts loading before the user finishes recording")
     }
 
     func test_userDismissed_fromSilentInvitation_cancelsPoll() async {

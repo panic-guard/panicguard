@@ -124,6 +124,8 @@ private struct ProfileStepView: View {
     let onContinue: () -> Void
 
     @State private var opacity: Double = 0
+    @State private var ageText: String = ""
+    @FocusState private var ageFieldFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -143,7 +145,7 @@ private struct ProfileStepView: View {
             Spacer().frame(height: 32)
 
             VStack(spacing: 0) {
-                // Age row
+                // Age row — -/+ buttons with tappable number for direct input
                 HStack {
                     Text("Age")
                         .font(.body)
@@ -152,28 +154,43 @@ private struct ProfileStepView: View {
                     Spacer()
 
                     HStack(spacing: 20) {
-                        Button { if age > 10 { age -= 1 } } label: {
+                        Button {
+                            if age > 10 { age -= 1; ageText = "\(age)" }
+                        } label: {
                             Image(systemName: "minus.circle")
                                 .font(.system(size: 24))
-                                .foregroundColor(.teal)
+                                .foregroundColor(age > 10 ? .teal : Color.gray.opacity(0.3))
                         }
 
-                        Text("\(age)")
+                        TextField("", text: $ageText)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.center)
                             .font(.system(size: 28, weight: .thin, design: .rounded))
                             .foregroundColor(.white)
-                            .frame(width: 44)
-                            .contentTransition(.numericText())
-                            .animation(.easeOut(duration: 0.15), value: age)
+                            .frame(width: 52)
+                            .focused($ageFieldFocused)
+                            .onChange(of: ageText) { _, newVal in
+                                let digits = String(newVal.filter(\.isNumber).prefix(2))
+                                if digits != newVal { ageText = digits }
+                                if let val = Int(digits), (10...99).contains(val) { age = val }
+                            }
 
-                        Button { if age < 99 { age += 1 } } label: {
+                        Button {
+                            if age < 99 { age += 1; ageText = "\(age)" }
+                        } label: {
                             Image(systemName: "plus.circle")
                                 .font(.system(size: 24))
-                                .foregroundColor(.teal)
+                                .foregroundColor(age < 99 ? .teal : Color.gray.opacity(0.3))
                         }
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .onAppear { ageText = "\(age)" }
+                .onChange(of: age) { _, newAge in
+                    // Sync when HealthKit updates age externally
+                    if !ageFieldFocused { ageText = "\(newAge)" }
+                }
 
                 Divider().background(Color.white.opacity(0.08))
 
@@ -195,18 +212,29 @@ private struct ProfileStepView: View {
                 if ecEnabled {
                     Divider().background(Color.white.opacity(0.08))
 
-                    HStack {
-                        Text("Phone")
-                            .font(.body)
-                            .foregroundColor(.white)
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Phone")
+                                .font(.body)
+                                .foregroundColor(.white)
+                            if ecPhone.trimmingCharacters(in: .whitespaces).isEmpty {
+                                Text("Required")
+                                    .font(.caption2)
+                                    .foregroundColor(.red.opacity(0.8))
+                            }
+                        }
                         Spacer()
                         TextField("", text: $ecPhone,
-                                  prompt: Text("+1 000 000 0000")
+                                  prompt: Text("01012345678")
                                     .foregroundColor(Color.gray.opacity(0.4)))
-                            .keyboardType(.phonePad)
+                            .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .foregroundColor(.teal)
                             .frame(maxWidth: 160)
+                            .onChange(of: ecPhone) { _, newVal in
+                                let digits = newVal.filter(\.isNumber)
+                                if digits != newVal { ecPhone = digits }
+                            }
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
@@ -218,6 +246,7 @@ private struct ProfileStepView: View {
 
             Spacer()
 
+            let continueBlocked = ecEnabled && ecPhone.trimmingCharacters(in: .whitespaces).isEmpty
             Button(action: onContinue) {
                 Text("Continue")
                     .font(.body)
@@ -225,9 +254,10 @@ private struct ProfileStepView: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
-                    .background(Color.teal)
+                    .background(continueBlocked ? Color.gray.opacity(0.4) : Color.teal)
                     .cornerRadius(16)
             }
+            .disabled(continueBlocked)
             .padding(.horizontal, 40)
             .padding(.bottom, 56)
         }

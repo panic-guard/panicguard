@@ -138,6 +138,31 @@ final class EpisodeStoreTests: XCTestCase {
         XCTAssertEqual(ratings, Set(1...5))
     }
 
+    // MARK: - delete
+
+    func test_delete_removesEpisodeFromStore() throws {
+        let ep = makeEpisode()
+        try sut.save(ep)
+        try sut.delete(ep)
+        XCTAssertTrue(try sut.fetchAll().isEmpty)
+    }
+
+    func test_delete_removesOnlyTargetEpisode() throws {
+        let older = makeEpisode(date: Date(timeIntervalSinceNow: -100))
+        let newer = makeEpisode(date: Date(timeIntervalSinceNow: -10))
+        try sut.save(older)
+        try sut.save(newer)
+        try sut.delete(older)
+        let remaining = try sut.fetchAll()
+        XCTAssertEqual(remaining.count, 1)
+        XCTAssertEqual(remaining[0].id, newer.id)
+    }
+
+    func test_delete_nonExistentEpisode_doesNotThrow() {
+        let ep = makeEpisode()
+        XCTAssertNoThrow(try sut.delete(ep))
+    }
+
     // MARK: - Nil triage (direct intervention path)
 
     func test_save_nilTriage_roundTrip() throws {

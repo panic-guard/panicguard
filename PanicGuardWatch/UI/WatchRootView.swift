@@ -26,38 +26,7 @@ struct WatchRootView: View {
                     WatchPostEpisodeView()
                 }
 
-                // Demo overlay — top-left to avoid overlapping view buttons
-                VStack {
-                    HStack {
-                        Button {
-                            controller.nextStateForDemo()
-                        } label: {
-                            HStack(spacing: 3) {
-                                Text(demoLabel)
-                                    .font(.system(size: 9))
-                                    .foregroundColor(.white.opacity(0.45))
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 9))
-                                    .foregroundColor(.teal.opacity(0.6))
-                            }
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(.ultraThinMaterial, in: Capsule())
-                        }
-                        .padding(.leading, 4)
-                        .padding(.top, 4)
-                        Spacer()
-                    }
-                    Spacer()
-                }
             }
         }
-    }
-
-    private var demoLabel: String {
-        if controller.state == .intervention {
-            return "\(controller.state.rawValue) · \(controller.lastInterventionAction.rawValue)"
-        }
-        return controller.state.rawValue
     }
 }

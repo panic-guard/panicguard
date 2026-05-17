@@ -98,7 +98,6 @@ struct InterventionView: View {
                 )
                 .frame(width: 320, height: 320)
                 .scaleEffect(breathScale)
-                // Animates in sync with breathScale changes driven by the task below.
                 .animation(.easeInOut(duration: 4), value: breathScale)
 
             // Core breathing circle
@@ -115,13 +114,15 @@ struct InterventionView: View {
                 .scaleEffect(breathScale)
                 .animation(.easeInOut(duration: 4), value: breathScale)
 
-            VStack(spacing: 24) {
-                Text(phaseLabel)
-                    .font(.title3)
-                    .fontWeight(.light)
-                    .foregroundColor(.white.opacity(0.9))
-                    .animation(.easeOut(duration: 0.4), value: phaseLabel)
+            Text(phaseLabel)
+                .font(.title3)
+                .fontWeight(.light)
+                .foregroundColor(.white.opacity(0.9))
+                .animation(.easeOut(duration: 0.4), value: phaseLabel)
 
+            // Button pinned to bottom, clear of the breathing circle
+            VStack {
+                Spacer()
                 if showContinueButton {
                     Button("Continue to grounding") {
                         phase = .grounding
@@ -133,8 +134,10 @@ struct InterventionView: View {
                     .background(Color.teal.opacity(0.15))
                     .clipShape(Capsule())
                     .transition(.opacity)
+                    .padding(.bottom, 56)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         // task{} is automatically cancelled when breathingPhaseView leaves the hierarchy.
         .task {

@@ -9,7 +9,10 @@
 /* Begin PBXBuildFile section */
 		0267F252BEF6993E28B8CAA9 /* GemmaAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B95B8C9EF055A3F0CE4B955 /* GemmaAgent.swift */; };
 		03711013D9EAAC9AE897D39B /* AppStateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97515AE80125CE9B541804C /* AppStateController.swift */; };
+		05D95B4D8B0D2C9DD5478797 /* EpisodeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065C310CC96A35D7A69AEC5 /* EpisodeDetailView.swift */; };
+		18A0BA9684EE0A62B7891B30 /* WatchAppStateControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C50C7818485B30123C7FE1 /* WatchAppStateControllerTests.swift */; };
 		20F2FC0468B7C00F1D1228A9 /* WatchPostEpisodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0210CB6777F55ADB0D66AF65 /* WatchPostEpisodeView.swift */; };
+		28BA46ED88FC0EAC00985CCA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDA0AE9DF9E35454E3020EC9 /* Assets.xcassets */; };
 		29B82AEA8A8C0A16BEA464CA /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381C24377E6682F578E43DF3 /* AppState.swift */; };
 		2C44E7D61FC5DCDAE9E5CD00 /* PanicGuardWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0A52D1E5774D1EFF6320E4 /* PanicGuardWatchApp.swift */; };
 		2FC39887BB51AAD0325F4FF5 /* VocalAnchorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */; };
@@ -32,6 +35,7 @@
 		6EE28F6D41C1A2A5F48192F9 /* LiteRTLM in Frameworks */ = {isa = PBXBuildFile; productRef = 744851E9F8C47507C0E03F80 /* LiteRTLM */; };
 		7304CC6F1ABDC0ECCB77AD6E /* GemmaAgentPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67C2E8BAA913AA2120AD39AA /* GemmaAgentPrompts.swift */; };
 		76BF33523DC963F930847730 /* UserProfileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B048B8B5863F7948756459 /* UserProfileStoreTests.swift */; };
+		87C177ADE67EF6408E88953E /* WatchConnectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EE10FCE186D7774519A891 /* WatchConnectorTests.swift */; };
 		8DC130B2DFEF3A76CAF9798E /* WatchIdleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234190F4B1A1CC284AED34 /* WatchIdleView.swift */; };
 		8DE41470E892FF2B7B9E3AB5 /* EpisodeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904735104FA88033E308794F /* EpisodeStoreTests.swift */; };
 		8EF7919701588D3A34D7EFD4 /* GemmaAgentLiteRTLM.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC8CDD195CDDDC988A9118F /* GemmaAgentLiteRTLM.swift */; };
@@ -114,10 +118,12 @@
 		640EC778D925DDC069EA1972 /* PanicGuardWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PanicGuardWatch.entitlements; sourceTree = "<group>"; };
 		67C2E8BAA913AA2120AD39AA /* GemmaAgentPrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentPrompts.swift; sourceTree = "<group>"; };
 		7192692213DDE2CFF750445F /* PanicGuard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PanicGuard.entitlements; sourceTree = "<group>"; };
+		73EE10FCE186D7774519A891 /* WatchConnectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectorTests.swift; sourceTree = "<group>"; };
 		7A53DFB0BF579922B8B4C2EB /* VocalAnchorManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocalAnchorManagerTests.swift; sourceTree = "<group>"; };
 		7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocalAnchorManager.swift; sourceTree = "<group>"; };
 		88CCAC469F0E22FD28F8DFCA /* SilentInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilentInvitationView.swift; sourceTree = "<group>"; };
 		904735104FA88033E308794F /* EpisodeStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStoreTests.swift; sourceTree = "<group>"; };
+		92C50C7818485B30123C7FE1 /* WatchAppStateControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchAppStateControllerTests.swift; sourceTree = "<group>"; };
 		98A020C493081DE7416B3772 /* GemmaAgentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentTests.swift; sourceTree = "<group>"; };
 		997A13E03852E887889994D6 /* WatchWelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWelcomeView.swift; sourceTree = "<group>"; };
 		9FD8A5341B7043801668CCA4 /* WatchSilentInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSilentInvitationView.swift; sourceTree = "<group>"; };
@@ -127,9 +133,11 @@
 		B78201F641E0685D7C9A9AD4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B8C6BF3F94B946D3FEAEBEE4 /* InterventionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterventionView.swift; sourceTree = "<group>"; };
 		BCF56063596EC184F51D4D06 /* EpisodeHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeHistoryView.swift; sourceTree = "<group>"; };
+		C065C310CC96A35D7A69AEC5 /* EpisodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeDetailView.swift; sourceTree = "<group>"; };
 		C4A9B63D6ADD13B941B7D4E5 /* EpisodeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStore.swift; sourceTree = "<group>"; };
 		C8DD091E9FF39E10B676892F /* iPhoneHRFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPhoneHRFetcher.swift; sourceTree = "<group>"; };
 		CA04BE6D9CFD17D1C0650CF6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CDA0AE9DF9E35454E3020EC9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D740101B5F3071BEA492F3C0 /* WatchingGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchingGuardTests.swift; sourceTree = "<group>"; };
 		D97515AE80125CE9B541804C /* AppStateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateController.swift; sourceTree = "<group>"; };
 		E03FBFA69C68890A885BB00F /* RuleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngine.swift; sourceTree = "<group>"; };
@@ -203,6 +211,7 @@
 		2019186D0D8F6621E272E68A /* App */ = {
 			isa = PBXGroup;
 			children = (
+				CDA0AE9DF9E35454E3020EC9 /* Assets.xcassets */,
 				B78201F641E0685D7C9A9AD4 /* Info.plist */,
 				7192692213DDE2CFF750445F /* PanicGuard.entitlements */,
 				2FBD0CC16C1C05C93B4F5C84 /* PanicGuardApp.swift */,
@@ -225,6 +234,7 @@
 			children = (
 				F790252F492F02E89A0C4ABF /* ActiveTriageView.swift */,
 				FF1DBF9B1768E8B2168575E3 /* ContentView.swift */,
+				C065C310CC96A35D7A69AEC5 /* EpisodeDetailView.swift */,
 				BCF56063596EC184F51D4D06 /* EpisodeHistoryView.swift */,
 				438E812396BF9F563DE23749 /* IdleView.swift */,
 				B8C6BF3F94B946D3FEAEBEE4 /* InterventionView.swift */,
@@ -240,6 +250,8 @@
 			isa = PBXGroup;
 			children = (
 				421E31A126239B2304776A3B /* HRSamplerTests.swift */,
+				92C50C7818485B30123C7FE1 /* WatchAppStateControllerTests.swift */,
+				73EE10FCE186D7774519A891 /* WatchConnectorTests.swift */,
 			);
 			path = PanicGuardWatchTests;
 			sourceTree = "<group>";
@@ -478,6 +490,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				28BA46ED88FC0EAC00985CCA /* Assets.xcassets in Resources */,
 				5F95347FC0ADB5E382818CBA /* gemma-4-E2B-it.litertlm in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -512,6 +525,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				E52153BB0567A76B138EDBAF /* HRSamplerTests.swift in Sources */,
+				18A0BA9684EE0A62B7891B30 /* WatchAppStateControllerTests.swift in Sources */,
+				87C177ADE67EF6408E88953E /* WatchConnectorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -524,6 +539,7 @@
 				29B82AEA8A8C0A16BEA464CA /* AppState.swift in Sources */,
 				53333A62C5491BCF43B66FB0 /* AppStateController.swift in Sources */,
 				A1707DB839E1BA90F99F6179 /* ContentView.swift in Sources */,
+				05D95B4D8B0D2C9DD5478797 /* EpisodeDetailView.swift in Sources */,
 				BF1F48A8DEFD62A6BAA5F103 /* EpisodeHistoryView.swift in Sources */,
 				905CE46D8D3ECC70AFDCF93E /* EpisodeStore.swift in Sources */,
 				0267F252BEF6993E28B8CAA9 /* GemmaAgent.swift in Sources */,

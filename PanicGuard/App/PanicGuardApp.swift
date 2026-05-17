@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 @main
 struct PanicGuardApp: App {
@@ -20,6 +21,9 @@ struct PanicGuardApp: App {
             ContentView()
                 .environmentObject(appStateController)
                 .onAppear { wireConnector() }
+                .onReceive(appStateController.$state) { state in
+                    pushWatchState(for: state)
+                }
         }
     }
 
@@ -37,5 +41,17 @@ struct PanicGuardApp: App {
         connector.onSilentInvitation = { [weak appStateController] in
             appStateController?.send(.elevationSustained)
         }
+    }
+
+    /// Mirrors key iPhone states to the Watch so it can show the correct UI and haptic.
+    private func pushWatchState(for state: AppState) {
+        let stateName: String
+        switch state {
+        case .watching:         stateName = "watching"
+        case .silentInvitation: stateName = "silentInvitation"
+        case .idle:             stateName = "idle"
+        default:                return
+        }
+        PhoneConnector.shared.pushWatchState(stateName)
     }
 }

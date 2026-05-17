@@ -20,6 +20,7 @@ struct Episode: Identifiable, Codable {
 protocol EpisodeStoring {
     func save(_ episode: Episode) throws
     func fetchAll() throws -> [Episode]
+    func delete(_ episode: Episode) throws
 }
 
 final class EpisodeStore: EpisodeStoring {
@@ -57,6 +58,15 @@ final class EpisodeStore: EpisodeStoring {
                 rating: (mo.value(forKey: "rating") as? NSNumber)?.intValue
             )
         }
+    }
+
+    func delete(_ episode: Episode) throws {
+        let ctx = container.viewContext
+        let request = NSFetchRequest<NSManagedObject>(entityName: "EpisodeMO")
+        request.predicate = NSPredicate(format: "id == %@", episode.id as CVarArg)
+        let results = try ctx.fetch(request)
+        results.forEach { ctx.delete($0) }
+        try ctx.save()
     }
 
     // MARK: - Private
