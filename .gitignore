@@ -76,3 +76,4 @@ DerivedData/
 # Large datasets or JSON mocks
 *.csv
 *.json
+!**/*.xcassets/**/Contents.json
