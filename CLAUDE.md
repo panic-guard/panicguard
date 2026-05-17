@@ -18,8 +18,8 @@ Key design insight: during severe panic attacks users cannot open apps. The Watc
 |---|---|
 | iOS UI | SwiftUI, iOS 17+ |
 | watchOS UI | SwiftUI, watchOS 10+ |
-| HR sampling | iPhone polls shared HealthKit every 5 min (`HKSampleQuery`); Watch writes via `HKAnchoredObjectQuery` |
-| LLM inference | MediaPipe LLM Inference API (LiteRT, Gemma 4 E2B, quantized, on-device) |
+| HR sampling | iPhone polls HealthKit on demand (`HKSampleQuery`, last 5 min) via `iPhoneHRFetcher`; Watch writes via `HKAnchoredObjectQuery` |
+| LLM inference | LiteRT (LiteRTLM), Gemma 4 E2B quantized, on-device — wrapped by `GemmaAgent` |
 | Storage | Core Data |
 | Audio / ASR | AVFoundation + SFSpeechRecognizer (offline) |
 | Phone↔Watch | WatchConnectivity (`WCSession`) |
@@ -88,8 +88,8 @@ Multiple entry paths — not strictly linear. All paths through `intervention` m
 
 | State | What happens |
 |---|---|
-| `onboarding` | Collects age, establishes personal baseline HR |
-| `idle` | iPhone polls shared HealthKit every 5 min for Watch HR data |
+| `onboarding` | Collects age, establishes personal baseline HR, records 12-second vocal calibration to capture `baselineVocalMetrics` (calm-state WPM + pause profile) |
+| `idle` | iPhone polls HealthKit on demand via `iPhoneHRFetcher` for Watch HR data |
 | `watching` | HR deviated from baseline; verify it's not exercise (step count) |
 | `silentInvitation` | 2 min sustained unexplained elevation → soft haptic on Watch. User chooses: dismiss / direct intervention / vocal anchor triage |
 | `activeTriage` | Phone wakes. Vocal Anchor displayed + recorded. Step 1+2+3 runs. |
@@ -105,7 +105,7 @@ Watch is the HR sensor and haptic delivery platform. Complex UI lives on the Pho
 | Responsibility | Watch | Phone |
 |---|---|---|
 | HR sensor (writes to HealthKit) | ✅ | ❌ |
-| HealthKit 5-min batch poll | ❌ | ✅ |
+| HealthKit on-demand poll | ❌ | ✅ |
 | Silent invitation haptic | ✅ | ❌ |
 | Silent invitation UI (2 buttons: dismiss / help now) | ✅ | ❌ |
 | Silent invitation UI (3 choices: dismiss / direct / vocal) | ❌ | ✅ |
@@ -125,13 +125,14 @@ Output: `HRFeaturePayload` (mean BPM, slope BPM/min, isMoving, stepsLast5Min).
   "context": { "is_moving": false, "steps_last_5min": 12 } }
 ```
 
-### Step 2 — GemmaAgent (LLM, multi-step tool calling)
-Uses MediaPipe LLM Inference API. Agent calls three tools in sequence:
-- `get_user_baseline()` — age + resting HR from `UserProfileStore`
-- `get_vocal_anchor_result()` — target phrase vs. ASR transcript (broken/empty transcript → strong panic signal)
-- `calculate_risk_ratio(current_hr, baseline_hr)`
+### Step 2 — GemmaAgent (LLM, single-turn prompt)
+Uses LiteRT (`LiteRTLMSessionFactory`). **Not** multi-turn tool calling — all context is pre-collected in Swift and embedded in one prompt.
 
-Reasons inside `<think>`, then outputs `TriageResult` JSON only.
+`GemmaAgentPrompts.triagePrompt()` builds the full prompt by:
+1. Computing semantic labels in Swift (activity level, slope severity, HR proportionality, vocal rate vs. baseline) — the LLM receives interpreted labels, not raw numbers.
+2. Embedding HR features, user baseline, risk ratio, and vocal anchor result.
+
+The LLM outputs `TriageResult` JSON inside `<answer>` tags. No tool calls, no multi-turn.
 
 Output: `TriageResult` (`likelihoodPanic 0–1`, `likelihoodPhysicalAnomaly 0–1`, `confidence high|medium|low`, `reasoningSummary`).
 
@@ -161,18 +162,26 @@ PanicGuard/
   Domain/
     StateMachine/   AppState.swift, AppStateController.swift
     Agent/          AgentProtocols.swift, HRFeatureExtractor.swift,
-                    GemmaAgent.swift, VocalAnchorManager.swift
+                    GemmaAgent.swift, GemmaAgentPrompts.swift,
+                    GemmaAgentLiteRTLM.swift, LLMInferring.swift,
+                    VocalAnchorManager.swift, iPhoneHRFetcher.swift
     Rules/          RuleEngine.swift, WatchingGuard.swift
   Data/             EpisodeStore.swift, UserProfileStore.swift
   UI/               ContentView.swift + per-state views
 
 PanicGuardWatch/
   App/              PanicGuardWatchApp.swift, Info.plist, PanicGuardWatch.entitlements
-  Domain/           HRSampler.swift, WatchConnector.swift
+  Domain/           AppState.swift, AppStateController.swift,
+                    HRSampler.swift, WatchConnector.swift
   UI/               WatchRootView.swift + per-state views
+                    (WatchIdleView, WatchWatchingView, WatchSilentInvitationView,
+                     WatchInterventionView)
 
 PanicGuardTests/        AppStateControllerTests, HRFeatureExtractorTests,
-                        RuleEngineTests, WatchingGuardTests
+                        RuleEngineTests, WatchingGuardTests,
+                        GemmaAgentTests, GemmaAgentPromptTests,
+                        GemmaAgentIntegrationTests, UserProfileStoreTests,
+                        VocalAnchorManagerTests, iPhoneHRFetcherTests
 PanicGuardWatchTests/   HRSamplerTests
 ```
 
@@ -180,7 +189,8 @@ PanicGuardWatchTests/   HRSamplerTests
 
 - `HRFeaturePayload` — Step 1 output
 - `TriageResult` — Step 2 output
-- `VocalAnchorResult` — target phrase + ASR transcript (transcript is `nil` if recognition failed)
+- `VocalAnchorResult` — target phrase + ASR transcript (transcript is `nil` if recognition failed) + optional `VocalMetrics`
+- `VocalMetrics` — word-level speech timing: WPM, max/mean/total pause seconds, duration. `nil` when recognition failed or < 2 words recognized. Also stored in `UserProfile.baselineVocalMetrics` as the calm-state reference.
 - `InterventionAction` — Step 3 output (defined in RuleEngine.swift)
 
 ## Coding rules
