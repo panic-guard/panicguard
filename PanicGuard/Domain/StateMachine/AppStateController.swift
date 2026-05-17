@@ -8,10 +8,12 @@ import Combine
 final class AppStateController: ObservableObject {
     @Published private(set) var state: AppState = .onboarding
     @Published private(set) var lastTriageResult: TriageResult?
+    @Published private(set) var lastInterventionAction: InterventionAction = .none
 
     // MARK: - Dependencies
 
     private let agentFactory: () throws -> any PanicTriageAgentProtocol
+    private let ruleEngine: RuleEngineProtocol
 
     // MARK: - Triage state (activeTriage window only)
 
@@ -21,8 +23,12 @@ final class AppStateController: ObservableObject {
 
     // MARK: - Init
 
-    init(agentFactory: @escaping () throws -> any PanicTriageAgentProtocol) {
+    init(
+        agentFactory: @escaping () throws -> any PanicTriageAgentProtocol,
+        ruleEngine: RuleEngineProtocol = RuleEngine()
+    ) {
         self.agentFactory = agentFactory
+        self.ruleEngine = ruleEngine
     }
 
     // MARK: - State machine
@@ -32,10 +38,6 @@ final class AppStateController: ObservableObject {
 
         case (.onboarding, .onboardingComplete):
             state = .idle
-
-        case (.idle, .selfCheckRequested):
-            state = .activeTriage
-            beginTriage()
 
         case (.idle, .hrElevationDetected):
             state = .watching
@@ -48,9 +50,25 @@ final class AppStateController: ObservableObject {
             state = .activeTriage
             beginTriage()
 
+        case (.silentInvitation, .userDismissed):
+            endTriage()
+            state = .idle
+
+        case (.silentInvitation, .userRequestedDirectIntervention):
+            endTriage()
+            state = .intervention
+
+        case (.idle, .userRequestedManualTriage):
+            state = .activeTriage
+            beginTriage()
+
+        case (.idle, .userRequestedDirectIntervention):
+            state = .intervention
+
         case (.activeTriage, .triageComplete(let result)):
             endTriage()
             lastTriageResult = result
+            lastInterventionAction = ruleEngine.selectIntervention(for: result)
             state = .intervention
 
         case (.intervention, .interventionDismissed):
@@ -70,15 +88,18 @@ final class AppStateController: ObservableObject {
 
     func canSend(_ event: AppStateEvent) -> Bool {
         switch (state, event) {
-        case (.onboarding,       .onboardingComplete):    return true
-        case (.idle,             .selfCheckRequested):    return true
-        case (.idle,             .hrElevationDetected):   return true
-        case (.watching,         .elevationSustained):    return true
-        case (.silentInvitation, .userAcknowledged):      return true
-        case (.activeTriage,     .triageComplete):        return true
-        case (.intervention,     .interventionDismissed): return true
-        case (.postEpisodeLog,   .logComplete):           return true
-        case (_,                 .resetToIdle):           return true
+        case (.onboarding,       .onboardingComplete):                return true
+        case (.idle,             .hrElevationDetected):               return true
+        case (.idle,             .userRequestedManualTriage):         return true
+        case (.idle,             .userRequestedDirectIntervention):   return true
+        case (.watching,         .elevationSustained):                return true
+        case (.silentInvitation, .userAcknowledged):                  return true
+        case (.silentInvitation, .userDismissed):                     return true
+        case (.silentInvitation, .userRequestedDirectIntervention):   return true
+        case (.activeTriage,     .triageComplete):                    return true
+        case (.intervention,     .interventionDismissed):             return true
+        case (.postEpisodeLog,   .logComplete):                       return true
+        case (_,                 .resetToIdle):                       return true
         default: return false
         }
     }

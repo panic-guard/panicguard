@@ -153,6 +153,6 @@ private extension GemmaAgentIntegrationTests {
 private final class MockUserProfileStoreForIntegration: UserProfileStoring {
     func save(_ profile: UserProfile) throws {}
     func load() throws -> UserProfile {
-        UserProfile(age: 28, baselineHR: 65)
+        UserProfile(age: 28, baselineHR: 65, emergencyContactEnabled: false)
     }
 }

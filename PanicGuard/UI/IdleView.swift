@@ -57,7 +57,7 @@ struct IdleView: View {
                             return
                         }
                         controller.setPendingFeatures(payload)
-                        controller.send(.selfCheckRequested)
+                        controller.send(.userRequestedManualTriage)
                         isFetching = false
                     }
                 } label: {

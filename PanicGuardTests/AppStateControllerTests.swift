@@ -196,69 +196,172 @@ final class AppStateControllerTests: XCTestCase {
         XCTAssertEqual(factoryCalls, 2, "Factory must be called again for the second triage cycle")
     }
 
-    // MARK: - selfCheckRequested
+    // MARK: New transitions — silentInvitation exits
 
-    func test_selfCheckRequested_fromIdle_transitionsToActiveTriage() {
+    func test_userDismissed_fromSilentInvitation_transitionsToIdle() {
         let sut = makeController()
         sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        XCTAssertEqual(sut.state, .silentInvitation)
+        sut.send(.userDismissed)
         XCTAssertEqual(sut.state, .idle)
-        sut.send(.selfCheckRequested)
+    }
+
+    func test_directIntervention_fromSilentInvitation_transitionsToIntervention() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        sut.send(.userRequestedDirectIntervention)
+        XCTAssertEqual(sut.state, .intervention)
+    }
+
+    func test_directIntervention_fromSilentInvitation_completesViaPostEpisodeLog() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        sut.send(.userRequestedDirectIntervention)
+        sut.send(.interventionDismissed)
+        XCTAssertEqual(sut.state, .postEpisodeLog)
+        sut.send(.logComplete)
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    // MARK: New transitions — idle shortcuts
+
+    func test_manualTriage_fromIdle_transitionsToActiveTriage() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        sut.send(.userRequestedManualTriage)
         XCTAssertEqual(sut.state, .activeTriage)
     }
 
-    func test_selfCheckRequested_fromOnboarding_isIgnored() {
+    func test_manualTriage_fromOnboarding_isIgnored() {
         let sut = makeController()
         XCTAssertEqual(sut.state, .onboarding)
-        sut.send(.selfCheckRequested)
+        sut.send(.userRequestedManualTriage)
         XCTAssertEqual(sut.state, .onboarding)
     }
 
-    func test_selfCheckRequested_fromWatching_isIgnored() {
+    func test_manualTriage_fromWatching_isIgnored() {
         let sut = makeController()
         sut.send(.onboardingComplete)
         sut.send(.hrElevationDetected)
         XCTAssertEqual(sut.state, .watching)
-        sut.send(.selfCheckRequested)
+        sut.send(.userRequestedManualTriage)
         XCTAssertEqual(sut.state, .watching)
     }
 
-    func test_selfCheckRequested_fromActiveTriage_isIgnored() {
+    func test_manualTriage_fromActiveTriage_isIgnored() {
         let sut = makeController()
         advanceToState(.activeTriage, controller: sut)
-        sut.send(.selfCheckRequested)
+        sut.send(.userRequestedManualTriage)
         XCTAssertEqual(sut.state, .activeTriage)
     }
 
-    func test_canSend_selfCheckRequested_trueWhenIdle() {
+    func test_directIntervention_fromIdle_transitionsToIntervention() {
         let sut = makeController()
         sut.send(.onboardingComplete)
-        XCTAssertTrue(sut.canSend(.selfCheckRequested))
+        sut.send(.userRequestedDirectIntervention)
+        XCTAssertEqual(sut.state, .intervention)
     }
 
-    func test_canSend_selfCheckRequested_falseWhenNotIdle() {
+    func test_directIntervention_fromIdle_completesViaPostEpisodeLog() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        sut.send(.userRequestedDirectIntervention)
+        sut.send(.interventionDismissed)
+        sut.send(.logComplete)
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    // MARK: canSend — manual triage
+
+    func test_canSend_manualTriage_trueWhenIdle() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        XCTAssertTrue(sut.canSend(.userRequestedManualTriage))
+    }
+
+    func test_canSend_manualTriage_falseWhenNotIdle() {
         let sut = makeController()
         // Onboarding state
-        XCTAssertFalse(sut.canSend(.selfCheckRequested))
+        XCTAssertFalse(sut.canSend(.userRequestedManualTriage))
         // Watching state
         sut.send(.onboardingComplete)
         sut.send(.hrElevationDetected)
-        XCTAssertFalse(sut.canSend(.selfCheckRequested))
+        XCTAssertFalse(sut.canSend(.userRequestedManualTriage))
     }
 
-    func test_selfCheckRequested_callsAgentFactory_withoutPreload() {
+    // MARK: Agent lifecycle — new paths
+
+    func test_userDismissed_fromSilentInvitation_releasesPreloadedAgent() {
         var factoryCalls = 0
+        let fake = FakeTriageAgent()
         let sut = AppStateController(agentFactory: {
             factoryCalls += 1
-            return FakeTriageAgent()
+            return fake
         })
         sut.send(.onboardingComplete)
-        sut.send(.selfCheckRequested)
-        // beginTriage() called directly — factory called exactly once, no preload phase
-        XCTAssertEqual(factoryCalls, 1)
-        XCTAssertEqual(sut.state, .activeTriage)
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        XCTAssertEqual(factoryCalls, 1, "Agent should be preloaded on silentInvitation")
+        sut.send(.userDismissed)
+        // On next silentInvitation the factory must be called again (agent was released on dismiss).
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        XCTAssertEqual(factoryCalls, 2, "Factory must be called again after dismiss released the agent")
     }
 
-    func test_selfCheckRequested_preservesPendingFeatures() {
+    func test_directIntervention_fromSilentInvitation_releasesPreloadedAgent() {
+        var factoryCalls = 0
+        let fake = FakeTriageAgent()
+        let sut = AppStateController(agentFactory: {
+            factoryCalls += 1
+            return fake
+        })
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        XCTAssertEqual(factoryCalls, 1)
+        sut.send(.userRequestedDirectIntervention)
+        sut.send(.interventionDismissed)
+        sut.send(.logComplete)
+        // On next silentInvitation the factory must be called again.
+        sut.send(.hrElevationDetected)
+        sut.send(.elevationSustained)
+        XCTAssertEqual(factoryCalls, 2, "Factory must be called again after direct intervention released the agent")
+    }
+
+    func test_manualTriage_fromIdle_callsAgentFactory() {
+        var factoryCalls = 0
+        let fake = FakeTriageAgent()
+        let sut = AppStateController(agentFactory: {
+            factoryCalls += 1
+            return fake
+        })
+        sut.send(.onboardingComplete)
+        sut.send(.userRequestedManualTriage)
+        XCTAssertEqual(sut.state, .activeTriage)
+        XCTAssertEqual(factoryCalls, 1, "Manual triage must create an agent (no preload window available)")
+    }
+
+    func test_directIntervention_fromIdle_doesNotCallAgentFactory() {
+        var factoryCalls = 0
+        let fake = FakeTriageAgent()
+        let sut = AppStateController(agentFactory: {
+            factoryCalls += 1
+            return fake
+        })
+        sut.send(.onboardingComplete)
+        sut.send(.userRequestedDirectIntervention)
+        XCTAssertEqual(sut.state, .intervention)
+        XCTAssertEqual(factoryCalls, 0, "Direct intervention skips triage entirely — no agent needed")
+    }
+
+    func test_manualTriage_preservesPendingFeatures() {
         let sut = makeController()
         sut.send(.onboardingComplete)
         let features = HRFeaturePayload(
@@ -266,7 +369,7 @@ final class AppStateControllerTests: XCTestCase {
             context: .init(isMoving: false, stepsLast5Min: 5)
         )
         sut.setPendingFeatures(features)
-        sut.send(.selfCheckRequested)
+        sut.send(.userRequestedManualTriage)
         // State reaches activeTriage with features set — no crash, correct state
         XCTAssertEqual(sut.state, .activeTriage)
     }
