@@ -1,6 +1,6 @@
 # PanicGuard
 
-On-device panic attack triage for iPhone + Apple Watch, powered by Gemma 4 E2B via LiteRT. No cloud. No data leaves the device.
+On-device panic attack triage for iPhone + Apple Watch, powered by Gemma4 via LiteRT. No cloud. No data leaves the device.
 
 ---
 
@@ -24,7 +24,7 @@ When a user acknowledges a potential episode, the app displays a short phrase an
 
 Clinically, reading aloud is a grounding technique: it anchors attention to the present moment and interrupts the cognitive spiral of a panic attack. Diagnostically, it is a distress signal: during severe panic, speech production degrades. A failed or broken transcription is one of the strongest indicators the model sees.
 
-Gemma 4 then receives a structured context combining multiple signals:
+Gemma4 then receives a structured context combining multiple signals:
 
 - **Heart rate features** — mean BPM, rate of rise (BPM/min slope), and whether the elevation is proportionate to observed activity
 - **Step count** — used to classify activity level and rule out exercise as a cause
@@ -41,7 +41,7 @@ A deterministic RuleEngine then maps those scores to an intervention, ensuring t
 
 - **Silent detection** — Watch monitors HR via HealthKit and sends a haptic after 2 minutes of sustained, unexplained elevation
 - **Vocal Anchor** — user reads a short phrase aloud; ASR captures both the grounding effect and a speech coherence signal
-- **Multi-signal triage** — Gemma 4 E2B weighs HR trajectory, activity level, personal baseline ratio, and vocal anchor result together
+- **Multi-signal triage** — Gemma4 weighs HR trajectory, activity level, personal baseline ratio, and vocal anchor result together
 - **Personalised context** — resting HR baseline and age collected at onboarding; user-specific reading style and pace are embedded in the prompt for more accurate individualisation
 - **Deterministic intervention routing** — RuleEngine maps LLM output to one of four actions with a fixed priority table
 - **Multiple intervention modes** — breathing guide, grounding exercise, emergency contact alert, or medical information depending on triage result
@@ -54,7 +54,7 @@ A deterministic RuleEngine then maps those scores to an intervention, ensuring t
 
 | Concern | Technology |
 |---|---|
-| LLM inference | Google AI Edge LiteRT + Gemma 4 E2B (quantized, on-device) |
+| LLM inference | Google AI Edge LiteRT + Gemma4 (quantized, on-device) via [LiteRTLM-Swift-SDK](https://github.com/lanka-ai-foundation/LiteRTLM-Swift-SDK) |
 | iOS UI | SwiftUI, iOS 17+ |
 | watchOS UI | SwiftUI, watchOS 10+ |
 | HR sensor | HealthKit `HKAnchoredObjectQuery` (Watch writes, iPhone polls) |
@@ -78,7 +78,7 @@ HealthKit HR samples + Step count
              │  HRFeaturePayload + semantic labels
              ▼
 ┌──────────────────────────┐
-│  Step 2: GemmaAgent          │  Gemma 4 E2B via LiteRT — single-turn prompt
+│  Step 2: GemmaAgent          │  Gemma4 via LiteRT — single-turn prompt
 │                              │  with HR features, vocal anchor result,
 │                              │  and personal baseline; outputs
 │                              │  { likelihoodPanic, likelihoodPhysicalAnomaly,
@@ -148,7 +148,7 @@ Rather than feeding raw numbers to the model, `HRFeatureExtractor` pre-computes 
 | Silent invitation haptic | ✅ | ❌ |
 | Silent invitation UI | ✅ | ❌ |
 | Vocal Anchor (mic + ASR) | ❌ | ✅ |
-| Gemma 4 inference | ❌ | ✅ |
+| Gemma4 inference | ❌ | ✅ |
 | Breathing guide UI | ✅ | ✅ |
 | Quick intervention button | ✅ | ✅ |
 | Onboarding / Post-episode log | ❌ | ✅ |
@@ -163,12 +163,19 @@ Zero network calls. HR data is read-only from HealthKit. Episode logs stay in Co
 
 ## Running the Project
 
-**Requirements:** Xcode 16+, iOS 17+ device, watchOS 10+ Apple Watch, Gemma 4 E2B `.litertlm` model file.
+**Requirements:** Xcode 16+, iOS 17+ device, watchOS 10+ Apple Watch, Gemma4 `.litertlm` model file.
 
 1. Place the model at `Models/gemma-4-E2B-it.litertlm`
 2. Run `xcodegen generate` to regenerate the `.xcodeproj`
 3. Open `PanicGuard.xcodeproj` in Xcode
 4. Build and run on a real device (HealthKit requires physical hardware)
+
+---
+
+## Acknowledgements
+
+- [LiteRTLM-Swift-SDK](https://github.com/lanka-ai-foundation/LiteRTLM-Swift-SDK) — Swift package by Lanka AI Foundation that provides the `LiteRTLM` inference engine used to run Gemma4 on-device. Without this package, integrating LiteRT into a Swift/SwiftUI project would require significant bridging work.
+- [Gemma4 (gemma-4-E2B-it-litert-lm)](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/commit/7fa1d78473894f7e736a21d920c3aa80f950c0db#d2h-629657) — Google DeepMind's Gemma4 E2B model quantized for LiteRT by the litert-community, used here as the on-device triage reasoner.
 
 ---
 
