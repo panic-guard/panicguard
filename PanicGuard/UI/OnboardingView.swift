@@ -96,6 +96,7 @@ private struct VocalCalibrationView: View {
 
     private let store = UserProfileStore()
     private let vocalAnchorManager = VocalAnchorManager()
+    private let hrFetcher = iPhoneHRFetcher()
 
     @State private var phase: CalibrationPhase = .instruction
     @State private var opacity: Double = 0
@@ -173,14 +174,22 @@ private struct VocalCalibrationView: View {
     }
 
     private func runCalibration() async {
-        let result = try? await vocalAnchorManager.captureAnchor(
+        async let anchorResult = vocalAnchorManager.captureAnchor(
             phrase: Self.calibrationPhrase,
             timeout: 12
         )
+        async let hrPayload = hrFetcher.fetch()
+
+        let anchor = try? await anchorResult
+        let hr = await hrPayload
+
+        // Fall back to 72 BPM if Watch HR data isn't available yet.
+        let baselineHR = hr?.currentHRMetrics.meanBPM ?? 72.0
+
         let profile = UserProfile(
             age: age,
-            baselineHR: 72.0,
-            baselineVocalMetrics: result?.vocalMetrics
+            baselineHR: baselineHR,
+            baselineVocalMetrics: anchor?.vocalMetrics
         )
         try? store.save(profile)
         phase = .done

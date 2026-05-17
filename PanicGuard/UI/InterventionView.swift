@@ -27,8 +27,9 @@ private let groundingPrompts: [GroundingPrompt] = [
 struct InterventionView: View {
     @EnvironmentObject var controller: AppStateController
 
-    // Populated from UserProfileStore once onboarding persists the emergency contact preference.
-    var emergencyContactEnabled: Bool = false
+    private let profileStore = UserProfileStore()
+    @State private var emergencyContactEnabled = false
+    @State private var emergencyContactPhone: String? = nil
 
     @State private var phase: InterventionPhase = .breathing
     @State private var showEmergencySheet = false
@@ -55,6 +56,10 @@ struct InterventionView: View {
             }
         }
         .onAppear {
+            if let profile = try? profileStore.load() {
+                emergencyContactEnabled = profile.emergencyContactEnabled
+                emergencyContactPhone = profile.emergencyContactPhone
+            }
             let action = controller.lastInterventionAction
             switch action {
             case .groundingExercise:
@@ -70,7 +75,7 @@ struct InterventionView: View {
             }
         }
         .sheet(isPresented: $showEmergencySheet) {
-            EmergencyContactSheet()
+            EmergencyContactSheet(phone: emergencyContactPhone)
         }
     }
 
@@ -255,6 +260,7 @@ struct InterventionView: View {
 
 private struct EmergencyContactSheet: View {
     @Environment(\.dismiss) private var dismiss
+    let phone: String?
 
     var body: some View {
         VStack(spacing: 24) {
@@ -274,7 +280,7 @@ private struct EmergencyContactSheet: View {
                 .foregroundColor(.secondary)
 
                 Button("Send message") {
-                    // TODO: Trigger ContactManager once onboarding stores contact info.
+                    sendSMS()
                     dismiss()
                 }
                 .foregroundColor(.teal)
@@ -283,5 +289,12 @@ private struct EmergencyContactSheet: View {
         }
         .padding(32)
         .presentationDetents([.fraction(0.3)])
+    }
+
+    private func sendSMS() {
+        let number = phone.map { $0.filter(\.isNumber) } ?? ""
+        let urlString = number.isEmpty ? "sms:" : "sms:\(number)"
+        guard let url = URL(string: urlString) else { return }
+        UIApplication.shared.open(url)
     }
 }

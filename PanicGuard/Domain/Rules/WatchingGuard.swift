@@ -15,7 +15,10 @@ final class WatchingGuard: WatchingGuardProtocol {
         baseline: Double,
         stepCount: Int
     ) -> Bool {
-        // TODO: implement elevation + activity check
-        fatalError("not implemented")
+        guard !hrSamples.isEmpty else { return false }
+        let meanHR = hrSamples.reduce(0, +) / Double(hrSamples.count)
+        let isElevated = meanHR >= baseline * 1.20
+        let isMoving = stepCount >= 30
+        return isElevated && !isMoving
     }
 }

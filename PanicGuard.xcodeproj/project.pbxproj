@@ -29,6 +29,7 @@
 		7304CC6F1ABDC0ECCB77AD6E /* GemmaAgentPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67C2E8BAA913AA2120AD39AA /* GemmaAgentPrompts.swift */; };
 		76BF33523DC963F930847730 /* UserProfileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B048B8B5863F7948756459 /* UserProfileStoreTests.swift */; };
 		8DC130B2DFEF3A76CAF9798E /* WatchIdleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234190F4B1A1CC284AED34 /* WatchIdleView.swift */; };
+		8DE41470E892FF2B7B9E3AB5 /* EpisodeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904735104FA88033E308794F /* EpisodeStoreTests.swift */; };
 		8EF7919701588D3A34D7EFD4 /* GemmaAgentLiteRTLM.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC8CDD195CDDDC988A9118F /* GemmaAgentLiteRTLM.swift */; };
 		905CE46D8D3ECC70AFDCF93E /* EpisodeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A9B63D6ADD13B941B7D4E5 /* EpisodeStore.swift */; };
 		9229445530BD7AD2A4DD090F /* WatchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2933D4EFF8CFE52F2093CFCC /* WatchRootView.swift */; };
@@ -75,7 +76,7 @@
 		00AC75A7DD8A32FAEBE0187B /* iPhoneHRFetcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPhoneHRFetcherTests.swift; sourceTree = "<group>"; };
 		02AD595B8E4BA3E824349496 /* LLMInferring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMInferring.swift; sourceTree = "<group>"; };
 		03A309D06331F90619343F06 /* RuleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngineTests.swift; sourceTree = "<group>"; };
-		0471C253A080BD281842B19D /* PanicGuardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PanicGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0471C253A080BD281842B19D /* PanicGuardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PanicGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F5E280E3F87A34B8F14095 /* GemmaAgentMediaPipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentMediaPipe.swift; sourceTree = "<group>"; };
 		0C1D86221EC0C955FEBDADE4 /* AppStateControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateControllerTests.swift; sourceTree = "<group>"; };
 		1BD645831C1BC3E92E70F6BA /* PanicGuardWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PanicGuardWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,14 +89,14 @@
 		356EA67BECE2FF1AB99E9261 /* UserProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileStore.swift; sourceTree = "<group>"; };
 		381C24377E6682F578E43DF3 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		3CCF693589C7D984B62C33B5 /* HRFeatureExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRFeatureExtractorTests.swift; sourceTree = "<group>"; };
-		3E546DA971BF53D4E73DD0AD /* gemma-4-E2B-it.litertlm */ = {isa = PBXFileReference; lastKnownFileType = file; path = "gemma-4-E2B-it.litertlm"; sourceTree = "<group>"; };
+		3E546DA971BF53D4E73DD0AD /* gemma-4-E2B-it.litertlm */ = {isa = PBXFileReference; path = "gemma-4-E2B-it.litertlm"; sourceTree = "<group>"; };
 		404984A518D76EDDF43DC40F /* HRFeatureExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRFeatureExtractor.swift; sourceTree = "<group>"; };
 		4136613FD1FFC2E0470EC730 /* WatchInterventionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchInterventionView.swift; sourceTree = "<group>"; };
 		421E31A126239B2304776A3B /* HRSamplerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRSamplerTests.swift; sourceTree = "<group>"; };
 		438E812396BF9F563DE23749 /* IdleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleView.swift; sourceTree = "<group>"; };
 		43B8AD9F9C549ACE0DBDF1F2 /* GemmaAgentIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentIntegrationTests.swift; sourceTree = "<group>"; };
 		461AF4E88DDAB4484606FF1C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		46B2D1EB72D7E3464D31A964 /* PanicGuard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PanicGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		46B2D1EB72D7E3464D31A964 /* PanicGuard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PanicGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B3487552BF5B5180436E9C0 /* AgentProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProtocols.swift; sourceTree = "<group>"; };
 		4F0A52D1E5774D1EFF6320E4 /* PanicGuardWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanicGuardWatchApp.swift; sourceTree = "<group>"; };
 		5151EC93911ACB391C38E390 /* HRSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRSampler.swift; sourceTree = "<group>"; };
@@ -105,6 +106,7 @@
 		7192692213DDE2CFF750445F /* PanicGuard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PanicGuard.entitlements; sourceTree = "<group>"; };
 		7A53DFB0BF579922B8B4C2EB /* VocalAnchorManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocalAnchorManagerTests.swift; sourceTree = "<group>"; };
 		7AF9485E613B09C3B3D7F13E /* VocalAnchorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocalAnchorManager.swift; sourceTree = "<group>"; };
+		904735104FA88033E308794F /* EpisodeStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStoreTests.swift; sourceTree = "<group>"; };
 		98A020C493081DE7416B3772 /* GemmaAgentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentTests.swift; sourceTree = "<group>"; };
 		9FD8A5341B7043801668CCA4 /* WatchSilentInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSilentInvitationView.swift; sourceTree = "<group>"; };
 		A56B77F2C25C6469192A9334 /* GemmaAgentPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaAgentPromptTests.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 			isa = PBXGroup;
 			children = (
 				0C1D86221EC0C955FEBDADE4 /* AppStateControllerTests.swift */,
+				904735104FA88033E308794F /* EpisodeStoreTests.swift */,
 				43B8AD9F9C549ACE0DBDF1F2 /* GemmaAgentIntegrationTests.swift */,
 				A56B77F2C25C6469192A9334 /* GemmaAgentPromptTests.swift */,
 				98A020C493081DE7416B3772 /* GemmaAgentTests.swift */,
@@ -525,6 +528,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC913110A7B93D84C53535F2 /* AppStateControllerTests.swift in Sources */,
+				8DE41470E892FF2B7B9E3AB5 /* EpisodeStoreTests.swift in Sources */,
 				FE620BFF7BCC367461032E3D /* GemmaAgentIntegrationTests.swift in Sources */,
 				E39C10B6C82298703F23D63E /* GemmaAgentPromptTests.swift in Sources */,
 				A4A0CE48571E81F5EC1692BF /* GemmaAgentTests.swift in Sources */,
@@ -610,7 +614,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PanicGuard/App/PanicGuard.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = K2U8WC7FVM;
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = "$(inherited)";
 				INFOPLIST_FILE = PanicGuard/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -651,7 +654,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PanicGuard/App/PanicGuard.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = K2U8WC7FVM;
 				EMBEDDED_CONTENT_CONTAINS_SWIFT = "$(inherited)";
 				INFOPLIST_FILE = PanicGuard/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -670,7 +672,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = K2U8WC7FVM;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -832,7 +833,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = K2U8WC7FVM;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (

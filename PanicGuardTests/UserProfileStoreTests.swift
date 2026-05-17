@@ -106,4 +106,26 @@ final class UserProfileStoreTests: XCTestCase {
             XCTAssertEqual(error as? UserProfileStoreError, .notFound)
         }
     }
+
+    // MARK: - emergencyContact fields
+
+    func test_saveAndLoad_withEmergencyContactPhone_roundTrip() throws {
+        let profile = UserProfile(
+            age: 30, baselineHR: 70.0,
+            emergencyContactEnabled: true,
+            emergencyContactPhone: "+14155550123"
+        )
+        try sut.save(profile)
+        let loaded = try sut.load()
+        XCTAssertEqual(loaded.emergencyContactEnabled, true)
+        XCTAssertEqual(loaded.emergencyContactPhone, "+821012345678")
+    }
+
+    func test_saveAndLoad_nilEmergencyContactPhone_roundTrip() throws {
+        let profile = UserProfile(age: 28, baselineHR: 68.0, emergencyContactEnabled: false)
+        try sut.save(profile)
+        let loaded = try sut.load()
+        XCTAssertFalse(loaded.emergencyContactEnabled)
+        XCTAssertNil(loaded.emergencyContactPhone)
+    }
 }

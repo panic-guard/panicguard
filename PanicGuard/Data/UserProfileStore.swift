@@ -5,12 +5,20 @@ struct UserProfile: Codable, Equatable {
     let baselineHR: Double
     let baselineVocalMetrics: VocalMetrics?
     let emergencyContactEnabled: Bool
+    let emergencyContactPhone: String?
 
-    init(age: Int, baselineHR: Double, baselineVocalMetrics: VocalMetrics? = nil, emergencyContactEnabled: Bool = false) {
+    init(
+        age: Int,
+        baselineHR: Double,
+        baselineVocalMetrics: VocalMetrics? = nil,
+        emergencyContactEnabled: Bool = false,
+        emergencyContactPhone: String? = nil
+    ) {
         self.age = age
         self.baselineHR = baselineHR
         self.baselineVocalMetrics = baselineVocalMetrics
         self.emergencyContactEnabled = emergencyContactEnabled
+        self.emergencyContactPhone = emergencyContactPhone
     }
 }
 
