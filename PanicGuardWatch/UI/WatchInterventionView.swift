@@ -1,8 +1,10 @@
 import SwiftUI
+import WatchKit
 
 struct WatchInterventionView: View {
     @State private var breathScale: CGFloat = 0.62
     @State private var phaseText: String = "Breathe in"
+    @State private var hapticTimer: Timer?
 
     private let phases: [(String, Double)] = [
         ("Breathe in", 4),
@@ -45,6 +47,13 @@ struct WatchInterventionView: View {
         .onAppear {
             breathScale = 1.0
             startCycle()
+            hapticTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                WKInterfaceDevice.current().play(.click)
+            }
+        }
+        .onDisappear {
+            hapticTimer?.invalidate()
+            hapticTimer = nil
         }
     }
 

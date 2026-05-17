@@ -2,8 +2,20 @@ import Foundation
 
 struct UserProfile: Codable, Equatable {
     let age: Int
-    let baselineHR: Double              // established during onboarding
-    let emergencyContactEnabled: Bool   // opt-in during onboarding; gates contact sheet in InterventionView
+    let baselineHR: Double
+    let baselineVocalMetrics: VocalMetrics?
+    let emergencyContactEnabled: Bool
+
+    init(age: Int, baselineHR: Double, baselineVocalMetrics: VocalMetrics? = nil, emergencyContactEnabled: Bool = false) {
+        self.age = age
+        self.baselineHR = baselineHR
+        self.baselineVocalMetrics = baselineVocalMetrics
+        self.emergencyContactEnabled = emergencyContactEnabled
+    }
+}
+
+enum UserProfileStoreError: Error, Equatable {
+    case notFound
 }
 
 protocol UserProfileStoring {
@@ -12,13 +24,22 @@ protocol UserProfileStoring {
 }
 
 final class UserProfileStore: UserProfileStoring {
+    private let defaults: UserDefaults
+    private let key = "com.panicguard.userProfile"
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
     func save(_ profile: UserProfile) throws {
-        // TODO: persist via UserDefaults or Core Data
-        fatalError("not implemented")
+        let data = try JSONEncoder().encode(profile)
+        defaults.set(data, forKey: key)
     }
 
     func load() throws -> UserProfile {
-        // TODO: load persisted profile
-        fatalError("not implemented")
+        guard let data = defaults.data(forKey: key) else {
+            throw UserProfileStoreError.notFound
+        }
+        return try JSONDecoder().decode(UserProfile.self, from: data)
     }
 }

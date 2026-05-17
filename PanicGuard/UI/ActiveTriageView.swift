@@ -1,7 +1,19 @@
 import SwiftUI
 
 struct ActiveTriageView: View {
-    private let anchorPhrase = "The morning light\nis calm and still."
+    @EnvironmentObject var controller: AppStateController
+
+    private static let anchorPhrases = [
+        "The morning light\nis calm and still.",
+        "Soft breath,\nsoft sky.",
+        "The water is still\nand quiet.",
+        "Slow and steady,\nI am here.",
+        "The sky is wide\nand open.",
+        "This moment\nis enough."
+    ]
+    private let anchorPhrase = anchorPhrases.randomElement()!
+    private let vocalAnchorManager = VocalAnchorManager()
+
     @State private var contentOpacity: Double = 0
 
     var body: some View {
@@ -36,5 +48,10 @@ struct ActiveTriageView: View {
             .animation(.easeIn(duration: 1.0), value: contentOpacity)
         }
         .onAppear { contentOpacity = 1 }
+        .task {
+            let result = (try? await vocalAnchorManager.captureAnchor(phrase: anchorPhrase, timeout: 15))
+                ?? VocalAnchorResult(targetPhrase: anchorPhrase, transcript: nil)
+            controller.setPendingAnchor(result)
+        }
     }
 }

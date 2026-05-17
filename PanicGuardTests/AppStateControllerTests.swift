@@ -238,6 +238,29 @@ final class AppStateControllerTests: XCTestCase {
         XCTAssertEqual(sut.state, .activeTriage)
     }
 
+    func test_manualTriage_fromOnboarding_isIgnored() {
+        let sut = makeController()
+        XCTAssertEqual(sut.state, .onboarding)
+        sut.send(.userRequestedManualTriage)
+        XCTAssertEqual(sut.state, .onboarding)
+    }
+
+    func test_manualTriage_fromWatching_isIgnored() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertEqual(sut.state, .watching)
+        sut.send(.userRequestedManualTriage)
+        XCTAssertEqual(sut.state, .watching)
+    }
+
+    func test_manualTriage_fromActiveTriage_isIgnored() {
+        let sut = makeController()
+        advanceToState(.activeTriage, controller: sut)
+        sut.send(.userRequestedManualTriage)
+        XCTAssertEqual(sut.state, .activeTriage)
+    }
+
     func test_directIntervention_fromIdle_transitionsToIntervention() {
         let sut = makeController()
         sut.send(.onboardingComplete)
@@ -252,6 +275,24 @@ final class AppStateControllerTests: XCTestCase {
         sut.send(.interventionDismissed)
         sut.send(.logComplete)
         XCTAssertEqual(sut.state, .idle)
+    }
+
+    // MARK: canSend — manual triage
+
+    func test_canSend_manualTriage_trueWhenIdle() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        XCTAssertTrue(sut.canSend(.userRequestedManualTriage))
+    }
+
+    func test_canSend_manualTriage_falseWhenNotIdle() {
+        let sut = makeController()
+        // Onboarding state
+        XCTAssertFalse(sut.canSend(.userRequestedManualTriage))
+        // Watching state
+        sut.send(.onboardingComplete)
+        sut.send(.hrElevationDetected)
+        XCTAssertFalse(sut.canSend(.userRequestedManualTriage))
     }
 
     // MARK: Agent lifecycle — new paths
@@ -318,5 +359,18 @@ final class AppStateControllerTests: XCTestCase {
         sut.send(.userRequestedDirectIntervention)
         XCTAssertEqual(sut.state, .intervention)
         XCTAssertEqual(factoryCalls, 0, "Direct intervention skips triage entirely — no agent needed")
+    }
+
+    func test_manualTriage_preservesPendingFeatures() {
+        let sut = makeController()
+        sut.send(.onboardingComplete)
+        let features = HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 120, slopeBPMPerMin: 12),
+            context: .init(isMoving: false, stepsLast5Min: 5)
+        )
+        sut.setPendingFeatures(features)
+        sut.send(.userRequestedManualTriage)
+        // State reaches activeTriage with features set — no crash, correct state
+        XCTAssertEqual(sut.state, .activeTriage)
     }
 }

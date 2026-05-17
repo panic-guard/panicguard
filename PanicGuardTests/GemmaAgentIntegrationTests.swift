@@ -5,7 +5,7 @@ import XCTest
 //
 // These tests load the actual Gemma 4 E2B model and call the LLM.
 // They are SKIPPED automatically unless the model is present in Bundle.main.
-//
+//ㅎ
 // To run: xcodegen generate → Clean Build Folder (⇧⌘K) → Build (⌘B) → Test (⌘U).
 // Expected runtime: 15–30 s per test (single-turn prompt — no multi-turn tool calling).
 
