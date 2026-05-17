@@ -12,6 +12,7 @@ struct SettingsView: View {
     // Emergency contact
     @State private var emergencyContactEnabled = false
     @State private var emergencyContactPhone = ""
+    @FocusState private var phoneFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -105,6 +106,7 @@ struct SettingsView: View {
                                         .multilineTextAlignment(.trailing)
                                         .foregroundColor(.teal)
                                         .frame(maxWidth: 160)
+                                        .focused($phoneFieldFocused)
                                         .onChange(of: emergencyContactPhone) { _, newVal in
                                             let digits = newVal.filter(\.isNumber)
                                             if digits != newVal { emergencyContactPhone = digits }
@@ -113,6 +115,13 @@ struct SettingsView: View {
                                             Text("01012345678")
                                                 .foregroundColor(Color.gray.opacity(0.4))
                                                 .multilineTextAlignment(.trailing)
+                                        }
+                                        .toolbar {
+                                            ToolbarItemGroup(placement: .keyboard) {
+                                                Spacer()
+                                                Button("Done") { phoneFieldFocused = false }
+                                                    .foregroundColor(.teal)
+                                            }
                                         }
                                 }
                                 .padding(.horizontal, 20)

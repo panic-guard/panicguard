@@ -126,6 +126,7 @@ private struct ProfileStepView: View {
     @State private var opacity: Double = 0
     @State private var ageText: String = ""
     @FocusState private var ageFieldFocused: Bool
+    @FocusState private var phoneFieldFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -231,9 +232,17 @@ private struct ProfileStepView: View {
                             .multilineTextAlignment(.trailing)
                             .foregroundColor(.teal)
                             .frame(maxWidth: 160)
+                            .focused($phoneFieldFocused)
                             .onChange(of: ecPhone) { _, newVal in
                                 let digits = newVal.filter(\.isNumber)
                                 if digits != newVal { ecPhone = digits }
+                            }
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button("Done") { phoneFieldFocused = false }
+                                        .foregroundColor(.teal)
+                                }
                             }
                     }
                     .padding(.horizontal, 20)
