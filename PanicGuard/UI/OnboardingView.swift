@@ -51,6 +51,11 @@ struct OnboardingView: View {
         .sheet(isPresented: $showDemoSheet) {
             DemoScenarioPickerView()
         }
+        .onAppear {
+            if controller.isDemoMode {
+                showDemoSheet = true
+            }
+        }
     }
 
     // Requests all required permissions upfront in one pass:

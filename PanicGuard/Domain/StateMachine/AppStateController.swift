@@ -30,6 +30,7 @@ final class AppStateController: ObservableObject {
     var demoAnchor: VocalAnchorResult? = nil
     var demoPromptText: String? = nil
     var demoHRSummary: (bpm: Double, slope: Double)? = nil
+    var isDemoMode: Bool = false
 
     // MARK: - Watching state (polling only while in .watching)
 
@@ -100,11 +101,12 @@ final class AppStateController: ObservableObject {
             state = .postEpisodeLog
 
         case (.postEpisodeLog, .logComplete):
-            state = .idle
+            state = isDemoMode ? .onboarding : .idle
 
         case (_, .resetToIdle):
             endTriage()
             stopWatchingPoll()
+            isDemoMode = false
             state = .idle
 
         default:
@@ -154,6 +156,8 @@ final class AppStateController: ObservableObject {
             emergencyContactEnabled: true,
             emergencyContactPhone: "01012345678"
         )
+        try? profileStore.save(profile)
+        isDemoMode = true
         let riskRatio = scenario.hrFeatures.currentHRMetrics.meanBPM / scenario.baselineHR
         demoPromptText = GemmaAgentPrompts.triagePrompt(context: .init(
             features: scenario.hrFeatures,
@@ -171,6 +175,7 @@ final class AppStateController: ObservableObject {
 
     /// Custom scenario: real mic + real LLM. Profile must be saved to profileStore before calling.
     func startCustomDemo(hrFeatures: HRFeaturePayload) {
+        isDemoMode = true
         demoHRSummary = (hrFeatures.currentHRMetrics.meanBPM,
                          hrFeatures.currentHRMetrics.slopeBPMPerMin)
         setPendingFeatures(hrFeatures)
