@@ -31,6 +31,8 @@ final class AppStateController: ObservableObject {
     var demoPromptText: String? = nil
     var demoHRSummary: (bpm: Double, slope: Double)? = nil
     var isDemoMode: Bool = false
+    var demoMatchedScenario: String? = nil  // set only for custom demo after real LLM result
+    private var isCustomDemoActive: Bool = false
 
     // MARK: - Watching state (polling only while in .watching)
 
@@ -92,9 +94,13 @@ final class AppStateController: ObservableObject {
             state = .intervention
 
         case (.activeTriage, .triageComplete(let result)):
+            let wasCustomDemo = isCustomDemoActive
             endTriage()
             lastTriageResult = result
             lastInterventionAction = ruleEngine.selectIntervention(for: result)
+            if wasCustomDemo {
+                demoMatchedScenario = matchedScenarioName(for: lastInterventionAction)
+            }
             state = .intervention
 
         case (.intervention, .interventionDismissed):
@@ -107,6 +113,7 @@ final class AppStateController: ObservableObject {
             endTriage()
             stopWatchingPoll()
             isDemoMode = false
+            demoMatchedScenario = nil
             state = .idle
 
         default:
@@ -158,6 +165,7 @@ final class AppStateController: ObservableObject {
         )
         try? profileStore.save(profile)
         isDemoMode = true
+        demoMatchedScenario = nil
         let riskRatio = scenario.hrFeatures.currentHRMetrics.meanBPM / scenario.baselineHR
         demoPromptText = GemmaAgentPrompts.triagePrompt(context: .init(
             features: scenario.hrFeatures,
@@ -176,6 +184,7 @@ final class AppStateController: ObservableObject {
     /// Custom scenario: real mic + real LLM. Profile must be saved to profileStore before calling.
     func startCustomDemo(hrFeatures: HRFeaturePayload) {
         isDemoMode = true
+        isCustomDemoActive = true
         demoHRSummary = (hrFeatures.currentHRMetrics.meanBPM,
                          hrFeatures.currentHRMetrics.slopeBPMPerMin)
         setPendingFeatures(hrFeatures)
@@ -248,6 +257,17 @@ final class AppStateController: ObservableObject {
         demoAnchor = nil
         demoPromptText = nil
         demoHRSummary = nil
+        isCustomDemoActive = false
+    }
+
+    private func matchedScenarioName(for action: InterventionAction) -> String {
+        switch action {
+        case .emergencyContact:  return "Scenario 1 · Acute Panic"
+        case .breathingGuide:    return "Scenario 2 · Moderate Panic"
+        case .groundingExercise: return "Scenario 3 · Mild Anxiety"
+        case .medicalAlert:      return "Scenario 4 · Physical Anomaly"
+        default:                 return "Calm / No Match"
+        }
     }
 
     /// Polls HealthKit every 30 s while in .watching; transitions to .silentInvitation

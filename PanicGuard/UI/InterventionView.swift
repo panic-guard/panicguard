@@ -35,6 +35,7 @@ struct InterventionView: View {
 
     @State private var phase: InterventionPhase = .breathing
     @State private var showEmergencySheet = false
+    @State private var showDemoMatchAlert = false
 
     // Breathing phase state
     @State private var breathScale: CGFloat = 0.62
@@ -79,11 +80,32 @@ struct InterventionView: View {
                     showEmergencySheet = true
                 }
             }
+            if controller.demoMatchedScenario != nil {
+                showDemoMatchAlert = true
+            }
+        }
+        .alert(
+            controller.demoMatchedScenario ?? "",
+            isPresented: $showDemoMatchAlert
+        ) {
+            Button("Continue") { }
+        } message: {
+            Text(demoInterventionDescription(for: controller.lastInterventionAction))
         }
         .sheet(isPresented: $showEmergencySheet) {
-            EmergencyContactSheet(phone: emergencyContactPhone) {
-                controller.send(.interventionDismissed)
-            }
+            EmergencyContactSheet(phone: emergencyContactPhone) { }
+        }
+    }
+
+    // MARK: - Demo helper
+
+    private func demoInterventionDescription(for action: InterventionAction) -> String {
+        switch action {
+        case .emergencyContact:  return "Starting breathing guide + emergency contact alert."
+        case .breathingGuide:    return "Starting breathing guide, then grounding exercise."
+        case .groundingExercise: return "Starting grounding exercise."
+        case .medicalAlert:      return "Your pattern suggests a possible physical issue rather than panic."
+        default:                 return "Starting intervention."
         }
     }
 
@@ -312,6 +334,7 @@ private struct EmergencyContactSheet: View {
     let onSend: () -> Void
 
     @State private var showComposer = false
+    @State private var showMockComposer = false
 
     private var number: String { phone.map { $0.filter(\.isNumber) } ?? "" }
 
@@ -379,12 +402,23 @@ private struct EmergencyContactSheet: View {
                 body: Self.messageBody
             )
         }
+        .sheet(isPresented: $showMockComposer, onDismiss: {
+            dismiss()
+        }) {
+            MockMessageComposeView(
+                recipients: number.isEmpty ? [] : [number],
+                messageBody: Self.messageBody
+            )
+        }
     }
 
     private func sendSMS() {
         guard MFMessageComposeViewController.canSendText() else {
+            #if targetEnvironment(simulator)
+            showMockComposer = true
+            #else
             dismiss()
-            onSend()
+            #endif
             return
         }
         showComposer = true
@@ -419,6 +453,53 @@ private struct MessageComposeView: UIViewControllerRepresentable {
             didFinishWith result: MessageComposeResult
         ) {
             dismiss()
+        }
+    }
+}
+
+// MARK: - Mock SMS composer (simulator only)
+
+private struct MockMessageComposeView: View {
+    @Environment(\.dismiss) private var dismiss
+    let recipients: [String]
+    let messageBody: String
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 8) {
+                    Text("To:")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                    Text(recipients.first ?? "")
+                        .font(.body)
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+
+                Divider()
+
+                Text(messageBody)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Spacer()
+            }
+            .background(Color(.systemBackground))
+            .navigationTitle("New Message")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Send") { dismiss() }
+                }
+            }
         }
     }
 }

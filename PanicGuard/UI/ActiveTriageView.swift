@@ -60,60 +60,74 @@ struct ActiveTriageView: View {
                     .padding(.top, 60)
                 }
 
-                Spacer()
-
-                // Phrase — always visible
-                VStack(spacing: 14) {
+                if isDemoFixed && recordingPhase == .done {
+                    // Fixed demo done: prompt fills the available space while 5 s timer runs
                     Text(captionText)
-                        .font(recordingPhase == .done ? .title2 : .caption)
-                        .fontWeight(recordingPhase == .done ? .light : .regular)
-                        .foregroundColor(recordingPhase == .done ? .white : .gray)
-                        .tracking(recordingPhase == .done ? 0 : 1.2)
-                        .animation(.easeInOut(duration: 0.3), value: captionText)
+                        .font(.title2).fontWeight(.light).foregroundColor(.white)
+                        .padding(.top, 24)
 
+                    if let prompt = controller.demoPromptText {
+                        ScrollView {
+                            Text(prompt)
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundColor(Color.teal.opacity(0.65))
+                                .padding(12)
+                        }
+                        .background(Color.white.opacity(0.04))
+                        .cornerRadius(10)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
+                        .transition(.opacity)
+                    }
+
+                    Spacer()
+                    Text(dotIndicatorText)
+                        .font(.caption2)
+                        .foregroundColor(Color.teal.opacity(0.4))
+                        .animation(.easeInOut(duration: 0.3), value: dotPhase)
+                        .frame(height: 16)
+                    Spacer().frame(height: 48)
+                } else {
+                    Spacer()
+
+                    // Phrase — always visible in non-done state
+                    VStack(spacing: 14) {
+                        Text(captionText)
+                            .font(recordingPhase == .done ? .title2 : .caption)
+                            .fontWeight(recordingPhase == .done ? .light : .regular)
+                            .foregroundColor(recordingPhase == .done ? .white : .gray)
+                            .tracking(recordingPhase == .done ? 0 : 1.2)
+                            .animation(.easeInOut(duration: 0.3), value: captionText)
+
+                        if recordingPhase != .done {
+                            Text(anchorPhrase)
+                                .font(.title2)
+                                .fontWeight(.light)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(8)
+                                .padding(.horizontal, 40)
+                                .transition(.opacity)
+                        }
+                    }
+
+                    Spacer()
+
+                    // Button area — hidden after done
                     if recordingPhase != .done {
-                        Text(anchorPhrase)
-                            .font(.title2)
-                            .fontWeight(.light)
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(8)
-                            .padding(.horizontal, 40)
+                        recordButton
+                            .padding(.bottom, 16)
                             .transition(.opacity)
                     }
+
+                    Text(dotIndicatorText)
+                        .font(.caption2)
+                        .foregroundColor(Color.teal.opacity(0.4))
+                        .animation(.easeInOut(duration: 0.3), value: dotPhase)
+                        .frame(height: 16)
+
+                    Spacer().frame(height: 48)
                 }
-
-                Spacer()
-
-                // Button area — hidden after done
-                if recordingPhase != .done {
-                    recordButton
-                        .padding(.bottom, 16)
-                        .transition(.opacity)
-                }
-
-                Text(dotIndicatorText)
-                    .font(.caption2)
-                    .foregroundColor(Color.teal.opacity(0.4))
-                    .animation(.easeInOut(duration: 0.3), value: dotPhase)
-                    .frame(height: 16)
-
-                // Fixed demo: show actual Gemma prompt while waiting 5 s
-                if isDemoFixed, recordingPhase == .done, let prompt = controller.demoPromptText {
-                    ScrollView {
-                        Text(prompt)
-                            .font(.system(size: 10, design: .monospaced))
-                            .foregroundColor(Color.teal.opacity(0.65))
-                            .padding(12)
-                    }
-                    .frame(maxHeight: 260)
-                    .background(Color.white.opacity(0.04))
-                    .cornerRadius(10)
-                    .padding(.horizontal, 20)
-                    .transition(.opacity)
-                }
-
-                Spacer().frame(height: 48)
             }
             .opacity(contentOpacity)
             .animation(.easeIn(duration: 0.8), value: contentOpacity)

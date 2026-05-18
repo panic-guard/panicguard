@@ -12,7 +12,6 @@ struct OnboardingView: View {
     @State private var age: Int = 25
     @State private var ecEnabled = false
     @State private var ecPhone = ""
-    @State private var isRequestingPermissions = false
     @State private var showDemoSheet = false
 
     private enum OnboardingStep { case welcome, profile, vocalCalibration }
@@ -22,16 +21,7 @@ struct OnboardingView: View {
             Color.black.ignoresSafeArea()
             switch step {
             case .welcome:
-                WelcomeStepView(isLoading: isRequestingPermissions) {
-                    isRequestingPermissions = true
-                    Task {
-                        await requestAllPermissions()
-                        await MainActor.run {
-                            isRequestingPermissions = false
-                            step = .profile
-                        }
-                    }
-                } onDemo: {
+                WelcomeStepView {
                     showDemoSheet = true
                 }
             case .profile:
@@ -98,8 +88,6 @@ struct OnboardingView: View {
 // MARK: - Welcome Step
 
 private struct WelcomeStepView: View {
-    let isLoading: Bool
-    let onContinue: () -> Void
     let onDemo: () -> Void
 
     @State private var pulseScale: CGFloat = 1.0
@@ -144,32 +132,17 @@ private struct WelcomeStepView: View {
 
             Spacer()
 
-            Button(action: onContinue) {
-                Group {
-                    if isLoading {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .tint(.black)
-                    } else {
-                        Text("Get started")
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .foregroundColor(.black)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(Color.teal)
-                .cornerRadius(16)
-            }
-            .disabled(isLoading)
-            .padding(.horizontal, 40)
-
             Button(action: onDemo) {
                 Text("Try Demo Mode")
-                    .font(.subheadline)
-                    .foregroundColor(Color.teal.opacity(0.75))
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(Color.teal)
+                    .cornerRadius(16)
             }
+            .padding(.horizontal, 40)
             .padding(.bottom, 56)
         }
         .opacity(opacity)
@@ -509,6 +482,30 @@ private struct VocalCalibrationView: View {
     }
 }
 
+// MARK: - Scenario 5 device capability
+
+private enum Scenario5Availability: Identifiable {
+    case available
+    case simulatorNotSupported
+    case deviceNotSupported
+
+    var id: String {
+        switch self {
+        case .simulatorNotSupported: return "simulator"
+        case .deviceNotSupported:    return "device"
+        case .available:             return "available"
+        }
+    }
+
+    static var current: Scenario5Availability {
+        #if targetEnvironment(simulator)
+        return .simulatorNotSupported
+        #else
+        return .available
+        #endif
+    }
+}
+
 // MARK: - Demo Scenario Picker
 
 private struct DemoScenarioPickerView: View {
@@ -516,6 +513,9 @@ private struct DemoScenarioPickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var showCustomSetup = false
+    @State private var deviceBlockReason: Scenario5Availability? = nil
+    @State private var showHistory = false
+    @State private var showSettings = false
     @State private var opacity: Double = 0
 
     var body: some View {
@@ -524,6 +524,21 @@ private struct DemoScenarioPickerView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
+                    // Top bar
+                    HStack {
+                        Button { showHistory = true } label: {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.title3).foregroundColor(.gray)
+                        }
+                        Spacer()
+                        Button { showSettings = true } label: {
+                            Image(systemName: "gearshape")
+                                .font(.title3).foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 60)
+
                     // Header
                     VStack(spacing: 8) {
                         Text("Demo Mode")
@@ -532,7 +547,7 @@ private struct DemoScenarioPickerView: View {
                             .font(.caption).foregroundColor(.gray)
                             .multilineTextAlignment(.center)
                     }
-                    .padding(.top, 60)
+                    .padding(.top, 16)
                     .padding(.bottom, 32)
 
                     // Fixed scenarios
@@ -546,7 +561,12 @@ private struct DemoScenarioPickerView: View {
 
                         // Custom scenario card
                         CustomScenarioCard {
-                            showCustomSetup = true
+                            let avail = Scenario5Availability.current
+                            if avail == .available {
+                                showCustomSetup = true
+                            } else {
+                                deviceBlockReason = avail
+                            }
                         }
                     }
                     .padding(.horizontal, 20)
@@ -558,6 +578,15 @@ private struct DemoScenarioPickerView: View {
         .onAppear { withAnimation(.easeIn(duration: 0.4)) { opacity = 1 } }
         .sheet(isPresented: $showCustomSetup) {
             CustomScenarioSetupView()
+        }
+        .sheet(isPresented: $showHistory) {
+            EpisodeHistoryView()
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .sheet(item: $deviceBlockReason) { reason in
+            DeviceUnavailableSheet(reason: reason)
         }
     }
 }
@@ -612,7 +641,7 @@ private struct CustomScenarioCard: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Try Your Own")
                         .font(.body).fontWeight(.medium).foregroundColor(.white)
-                    Text("Enter BPM · Record your voice · Real AI inference")
+                    Text("Live voice · Gemma 4 on-device AI · 6 GB+ RAM recommended")
                         .font(.caption).foregroundColor(.gray)
                 }
 
@@ -630,6 +659,63 @@ private struct CustomScenarioCard: View {
             .cornerRadius(12)
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Device unavailable sheet (Scenario 5)
+
+private struct DeviceUnavailableSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let reason: Scenario5Availability
+
+    var body: some View {
+        ZStack {
+            Color(red: 0.07, green: 0.07, blue: 0.12).ignoresSafeArea()
+            VStack(spacing: 20) {
+                Image(systemName: iconName)
+                    .font(.system(size: 48))
+                    .foregroundColor(.orange)
+
+                VStack(spacing: 8) {
+                    Text(title)
+                        .font(.title3).fontWeight(.medium).foregroundColor(.white)
+                    Text(message)
+                        .font(.subheadline).foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                }
+
+                Button("Close") { dismiss() }
+                    .font(.body).foregroundColor(.teal)
+                    .padding(.horizontal, 32).padding(.vertical, 12)
+                    .background(Color.teal.opacity(0.15))
+                    .clipShape(Capsule())
+            }
+            .padding(.top, 40).padding(.bottom, 32)
+        }
+        .presentationDetents([.fraction(0.52)])
+        .presentationDragIndicator(.hidden)
+    }
+
+    private var iconName: String {
+        reason == .simulatorNotSupported
+            ? "desktopcomputer.trianglebadge.exclamationmark"
+            : "iphone.slash"
+    }
+
+    private var title: String {
+        reason == .simulatorNotSupported ? "Simulator Not Supported" : "Device Not Supported"
+    }
+
+    private var message: String {
+        switch reason {
+        case .simulatorNotSupported:
+            return "Scenario 5 runs Gemma 4 entirely on-device using the Neural Engine.\n\nSimulators don't have the required hardware. Please use a real device with 6 GB RAM or more."
+        case .deviceNotSupported:
+            return "Your device doesn't meet the requirements.\n\nScenario 5 recommends 6 GB RAM or more to run Gemma 4 on-device AI."
+        case .available:
+            return ""
+        }
     }
 }
 
