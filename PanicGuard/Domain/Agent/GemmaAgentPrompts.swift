@@ -81,6 +81,8 @@ enum GemmaAgentPrompts {
             .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
             .joined(separator: " ")
+            .components(separatedBy: .punctuationCharacters)
+            .joined()
             .lowercased()
     }
 
@@ -144,11 +146,12 @@ enum GemmaAgentPrompts {
         let anchorSection: String
         if let transcript = context.anchor.transcript {
             let match = normalizePhrase(context.anchor.targetPhrase) == normalizePhrase(transcript)
+            let displayTranscript = transcript.replacingOccurrences(of: "\n", with: " ")
             var lines = """
             - Target phrase: "\(displayPhrase)"
-            - Spoken transcript: "\(transcript)"
+            - Spoken transcript: "\(displayTranscript)"
             - Exact match: \(match)
-            - recognition_failed: false
+            - speech_recognized: true
             """
             if let m = context.anchor.vocalMetrics {
                 let hesitationPct = m.durationSeconds > 0
@@ -168,86 +171,78 @@ enum GemmaAgentPrompts {
         } else {
             anchorSection = """
             - Target phrase: "\(displayPhrase)"
-            - recognition_failed: true (user could not speak coherently)
+            - speech_recognized: false (user could not speak coherently)
             """
         }
 
         return """
-        You are a clinical triage assistant for a wearable panic-detection app.
-        Estimate two INDEPENDENT probabilities based on the sensor readings below.
-        The readings include pre-interpreted labels — use them directly in your reasoning.
+        You are a panic-detection triage assistant.
+        Output two INDEPENDENT probabilities from the sensor readings below.
 
-        ## Sensor Readings
+        ## Readings
 
         ### Heart Rate
         \(hrSection)
 
-        ### User Baseline
+        ### Baseline
         \(baselineSection)
 
-        ### Vocal Anchor Test
+        ### Vocal Anchor
         \(anchorSection)
 
-        ## Output Definitions
+        ## Rules
 
-        **likelihoodPanic** — probability of a panic attack:
-        Psychogenic tachycardia from fear or anxiety. Key markers: HR higher than expected \
-        for activity level, flat or moderate slope at rest, cognitive distress (recognition_failed: true).
+        **likelihoodPanic** — psychogenic: unexplained HR elevation + cognitive/vocal distress
+        **likelihoodPhysicalAnomaly** — cardiac/autonomic: HR disproportionate to exertion (independent; both can be simultaneously high)
 
-        **likelihoodPhysicalAnomaly** — probability of a cardiac or autonomic anomaly:
-        Arrhythmia, SVT, or tachycardia disproportionate to observed exertion. \
-        NOT simply "not panic" — both probabilities can be high simultaneously \
-        (e.g. arrhythmia-triggered anxiety). Key marker: HR unexplained by exertion level.
+        Conditions → likelihoodPanic target:
 
-        ## Reasoning Guide
+        workout detected + speech_recognized: true
+        → < 0.15 (non-step exercise; low panic even if step count is near zero)
 
-        Use the pre-computed labels above:
+        "within expected range" + speech_recognized: true
+        → < 0.30
 
-        Active workout session detected OR caloric expenditure ≥3 kcal/5 min + recognition_failed: false
-        → Non-step exercise (strength training, cycling, rowing). likelihoodPanic should be VERY LOW (< 0.15) even if HR is elevated and step count is near zero.
+        "HIGHER THAN EXPECTED" + sedentary + speech_recognized: false
+        → > 0.70; also raise physicalAnomaly if HR is extreme
 
-        "within expected range" + gradual or flat slope + recognition_failed: false
-        → Strong evidence of normal exercise. likelihoodPanic should be LOW (< 0.3).
+        "HIGHER THAN EXPECTED" + sedentary + speech_recognized: true
+        → 0.40–0.65; raise physicalAnomaly (unexplained HR with intact cognition)
 
-        "HIGHER THAN EXPECTED" + sedentary + recognition_failed: true
-        → Strong panic signal. likelihoodPanic should be HIGH (> 0.7). \
-          Also consider elevated physical anomaly if HR is extreme.
+        "HIGHER THAN EXPECTED" + jogging/brisk walk + speech_recognized: false
+        → Elevated; steep slope warrants concern even with movement
 
-        "HIGHER THAN EXPECTED" + sedentary + recognition_failed: false
-        → Mixed signal. Panic is possible but anchor success tempers it. \
-          Physical anomaly likelihood rises.
+        "within expected range" + sedentary + speech_recognized: false
+        → 0.45–0.60 (vocal failure without elevated HR = pre-panic cognitive/respiratory symptoms; user self-initiated triage)
 
-        "HIGHER THAN EXPECTED" + jogging or brisk walk + recognition_failed: true
-        → Ambiguous. Failed anchor during vigorous activity could be exercise exhaustion. \
-          Weigh the slope severity — steep slope at high steps/min still warrants concern.
-
-        recognition_failed: false always reduces likelihoodPanic relative to the HR signal alone.
-        recognition_failed: true always increases likelihoodPanic regardless of movement.
-
-        When vocal metrics and a calm-state baseline are available:
-        "significant disruption" in rate (≥40% slower) OR max pause "significantly elevated" (≥4x baseline)
-        → Treat as equivalent weight to recognition_failed: true.
-        "mild disruption" in rate OR "moderately elevated" pauses
-        → Moderately increase likelihoodPanic; do not override HR evidence.
+        Vocal quality overrides — apply to any "within expected range" + sedentary case:
+        "significant disruption" (rate ≥40% slower) OR "significantly elevated" pause (≥4×) OR exact match: false
+        → 0.45–0.60; override the base case regardless of speech_recognized value
+        "mild disruption" (rate 15–40% slower) OR "moderately elevated" pause (2–4×)
+        → 0.25–0.40; do not override HR evidence
         "similar to baseline" + exact match: true
-        → Strong evidence against panic; reduce likelihoodPanic significantly.
-        When no baseline exists, use absolute WPM labels (< 80 WPM is slow, > 170 is fast).
+        → < 0.25; strong evidence against panic
+
+        ## Thresholds
+
+        likelihoodPanic: < 0.40 no intervention | 0.40–0.74 grounding | ≥ 0.75 breathing guide | ≥ 0.90 + high → emergency contact
+        likelihoodPhysicalAnomaly > 0.70 + likelihoodPanic < 0.40 → medical alert
+        If the clinical picture warrants crossing a threshold, the number must reflect it.
 
         ## Output
 
-        Respond with exactly this JSON inside <answer> tags. No other text outside the tags.
+        Respond with exactly this JSON inside <answer> tags. No text outside.
 
         <answer>
         {
           "likelihoodPanic": <0.0–1.0>,
           "likelihoodPhysicalAnomaly": <0.0–1.0>,
           "confidence": "<high|medium|low>",
-          "reasoningSummary": "<one sentence covering the key label combination>"
+          "reasoningSummary": "<one sentence>"
         }
         </answer>
 
-        - likelihoodPanic and likelihoodPhysicalAnomaly are INDEPENDENT — do not force them to sum to 1.0
-        - Use confidence "low" when baseline HR is unavailable
+        confidence "low" if baseline HR unavailable. Both values are independent — do not sum to 1.0.
         """
     }
 }

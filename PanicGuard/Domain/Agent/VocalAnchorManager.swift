@@ -43,6 +43,7 @@ final class VocalAnchorManager: VocalAnchorManaging {
 
         let request = SFSpeechURLRecognitionRequest(url: url)
         request.requiresOnDeviceRecognition = recognizer.supportsOnDeviceRecognition
+        request.contextualStrings = [phrase]
 
         return await withCheckedContinuation { cont in
             var resumed = false
@@ -54,7 +55,7 @@ final class VocalAnchorManager: VocalAnchorManaging {
             recognizer.recognitionTask(with: request) { result, error in
                 if let result, result.isFinal {
                     let transcript = result.bestTranscription.formattedString
-                    let metrics = self.vocalMetrics(from: result.bestTranscription.segments)
+                    let metrics = self.vocalMetrics(from: result.bestTranscription.segments, transcript: transcript)
                     finish(VocalAnchorResult(targetPhrase: phrase, transcript: transcript, vocalMetrics: metrics))
                 } else if error != nil {
                     finish(VocalAnchorResult(targetPhrase: phrase, transcript: nil))
@@ -66,9 +67,12 @@ final class VocalAnchorManager: VocalAnchorManaging {
     // MARK: - Private
 
     /// Extracts word-level timing from SFTranscriptionSegments.
-    /// Returns nil when fewer than 2 words were recognized (not enough for pause analysis).
-    private func vocalMetrics(from segments: [SFTranscriptionSegment]) -> VocalMetrics? {
-        guard segments.count >= 2, let last = segments.last else { return nil }
+    /// WPM uses transcript word count for accuracy. Pauses are computed from segment gaps;
+    /// if Apple merges all words into 1 segment (fluent speech), pauses are 0 — correct behaviour.
+    /// Returns nil only when transcript has fewer than 2 words or duration is zero.
+    private func vocalMetrics(from segments: [SFTranscriptionSegment], transcript: String) -> VocalMetrics? {
+        let wordCount = transcript.components(separatedBy: .whitespaces).filter { !$0.isEmpty }.count
+        guard wordCount >= 2, let last = segments.last else { return nil }
         let totalDuration = last.timestamp + last.duration
         guard totalDuration > 0 else { return nil }
 
@@ -81,7 +85,7 @@ final class VocalAnchorManager: VocalAnchorManaging {
         let meanPause = pauses.isEmpty ? 0 : pauses.reduce(0, +) / Double(pauses.count)
 
         return VocalMetrics(
-            speakingRateWPM: Double(segments.count) / totalDuration * 60.0,
+            speakingRateWPM: Double(wordCount) / totalDuration * 60.0,
             maxPauseSeconds: pauses.max() ?? 0,
             meanPauseSeconds: meanPause,
             totalPauseSeconds: pauses.filter { $0 > 0.3 }.reduce(0, +),

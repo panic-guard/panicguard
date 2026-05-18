@@ -139,8 +139,13 @@ final class GemmaAgentPromptTests: XCTestCase {
     func test_normalizePhrase_removesNewlines() {
         XCTAssertEqual(
             GemmaAgentPrompts.normalizePhrase("The morning light\nis calm and still."),
-            "the morning light is calm and still."
+            "the morning light is calm and still"
         )
+    }
+
+    func test_normalizePhrase_stripsPunctuation() {
+        XCTAssertEqual(GemmaAgentPrompts.normalizePhrase("Slow and steady, I am here."), "slow and steady i am here")
+        XCTAssertEqual(GemmaAgentPrompts.normalizePhrase("This moment is enough."), "this moment is enough")
     }
 
     func test_normalizePhrase_collapsesMultipleSpaces() {

@@ -46,10 +46,10 @@ private func makeAgent(
     return (agent, session)
 }
 
-private func makeFeatures(meanBPM: Double = 145, slope: Double = 30, isMoving: Bool = false) -> HRFeaturePayload {
+private func makeFeatures(meanBPM: Double = 145, slope: Double = 30, isMoving: Bool = false, stepsLast5Min: Int = 12) -> HRFeaturePayload {
     HRFeaturePayload(
         currentHRMetrics: .init(meanBPM: meanBPM, slopeBPMPerMin: slope),
-        context: .init(isMoving: isMoving, stepsLast5Min: 12)
+        context: .init(isMoving: isMoving, stepsLast5Min: stepsLast5Min)
     )
 }
 
@@ -59,6 +59,10 @@ private func makeAnchor(transcript: String? = "I am safe right now") -> VocalAnc
 
 private func panicAnswer(likelihood: Double = 0.85) -> String {
     "<answer>{\"likelihoodPanic\":\(likelihood),\"likelihoodPhysicalAnomaly\":0.10,\"confidence\":\"high\",\"reasoningSummary\":\"Test.\"}</answer>"
+}
+
+private func moderateAnswer(likelihood: Double = 0.50) -> String {
+    "<answer>{\"likelihoodPanic\":\(likelihood),\"likelihoodPhysicalAnomaly\":0.05,\"confidence\":\"medium\",\"reasoningSummary\":\"Test.\"}</answer>"
 }
 
 // MARK: - Tests
@@ -87,19 +91,19 @@ final class GemmaAgentTests: XCTestCase {
         XCTAssertTrue(prompt.contains("32"), "Prompt must contain HR slope")
     }
 
-    // When ASR fails the prompt must signal recognition_failed: true.
+    // When ASR fails the prompt must signal speech_recognized: false.
     func test_vocalAnchorFailed_promptSignalsRecognitionFailed() async throws {
         let (agent, session) = makeAgent(responses: [panicAnswer(likelihood: 0.92)])
 
         _ = try await agent.runTriage(features: makeFeatures(), vocalAnchor: makeAnchor(transcript: nil))
 
         let prompt = session.receivedMessages[0]
-        XCTAssertTrue(prompt.contains("recognition_failed: true"), "Prompt must flag recognition failure")
-        // Note: the guide section of the prompt also uses "recognition_failed: false" as explanatory text,
+        XCTAssertTrue(prompt.contains("speech_recognized: false"), "Prompt must flag recognition failure")
+        // Note: the guide section of the prompt also uses "speech_recognized: true" as explanatory text,
         // so we only assert the presence of the true signal, not the absence of the false string.
     }
 
-    // Successful anchor match must appear in the prompt as recognition_failed: false.
+    // Successful anchor match must appear in the prompt as speech_recognized: true.
     func test_vocalAnchorSucceeded_promptSignalsRecognitionSucceeded() async throws {
         let (agent, session) = makeAgent(responses: [panicAnswer(likelihood: 0.2)])
 
@@ -109,7 +113,7 @@ final class GemmaAgentTests: XCTestCase {
         )
 
         let prompt = session.receivedMessages[0]
-        XCTAssertTrue(prompt.contains("recognition_failed: false"))
+        XCTAssertTrue(prompt.contains("speech_recognized: true"))
     }
 
     // Missing user profile → prompt reflects unavailability, result uses low confidence.
@@ -186,5 +190,36 @@ final class GemmaAgentTests: XCTestCase {
 
         _ = try await agent.runTriage(features: makeFeatures(), vocalAnchor: makeAnchor())
         XCTAssertEqual(factoryCalls, 1)
+    }
+
+    // MARK: - Cross-case: HR normal + vocal failed / disrupted
+
+    // When HR is in normal range but vocal anchor fails, the prompt must carry both signals
+    // so the LLM can apply the new "within expected range + speech_recognized: false" rule.
+    func test_hrNormalVocalFailed_promptContainsBothSignals() async throws {
+        let (agent, session) = makeAgent(
+            responses: [moderateAnswer(likelihood: 0.50)],
+            profile: .init(age: 30, baselineHR: 53, emergencyContactEnabled: false)
+        )
+        let normalFeatures = makeFeatures(meanBPM: 61, slope: 2.0, stepsLast5Min: 5)
+
+        _ = try await agent.runTriage(features: normalFeatures, vocalAnchor: makeAnchor(transcript: nil))
+
+        let prompt = session.receivedMessages[0]
+        XCTAssertTrue(prompt.contains("within expected range"),
+                      "HR 61 vs baseline 53 sedentary must be labelled within expected range")
+        XCTAssertTrue(prompt.contains("speech_recognized: false"),
+                      "Nil transcript must flag recognition failure in the prompt")
+    }
+
+    // Moderate panic likelihood (0.50) from mock LLM must decode correctly.
+    // Ensures the new target range (0.45–0.60) round-trips through JSON parsing.
+    func test_moderatePanicLikelihood_decodesCorrectly() async throws {
+        let (agent, _) = makeAgent(responses: [moderateAnswer(likelihood: 0.50)])
+
+        let result = try await agent.runTriage(features: makeFeatures(), vocalAnchor: makeAnchor())
+
+        XCTAssertEqual(result.likelihoodPanic, 0.50, accuracy: 0.001)
+        XCTAssertEqual(result.confidence, .medium)
     }
 }

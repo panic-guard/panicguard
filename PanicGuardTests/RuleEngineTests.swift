@@ -48,10 +48,10 @@ final class RuleEngineTests: XCTestCase {
 
     // MARK: - Low likelihood
 
-    func test_lowBothLikelihoods_selectsNone() {
+    func test_lowBothLikelihoods_selectsCalm() {
         XCTAssertEqual(
             sut.selectIntervention(for: result(likelihoodPanic: 0.20, likelihoodPhysicalAnomaly: 0.20)),
-            .none
+            .calm
         )
     }
 
@@ -104,10 +104,10 @@ final class RuleEngineTests: XCTestCase {
         )
     }
 
-    func test_panicJustBelow_0_40_selectsNone() {
+    func test_panicJustBelow_0_40_selectsCalm() {
         XCTAssertEqual(
             sut.selectIntervention(for: result(likelihoodPanic: 0.399)),
-            .none
+            .calm
         )
     }
 
@@ -128,10 +128,10 @@ final class RuleEngineTests: XCTestCase {
     // MARK: - Physical anomaly boundary values
 
     func test_physicalAnomalyExactlyAt_0_70_doesNotTriggerMedicalAlert() {
-        // > 0.70 is required; exactly 0.70 falls through to .none
+        // > 0.70 is required; exactly 0.70 falls through to .calm
         XCTAssertEqual(
             sut.selectIntervention(for: result(likelihoodPanic: 0.20, likelihoodPhysicalAnomaly: 0.70)),
-            .none
+            .calm
         )
     }
 

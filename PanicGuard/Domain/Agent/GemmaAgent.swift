@@ -86,7 +86,9 @@ final class GemmaAgent: PanicTriageAgentProtocol {
             riskRatio: riskRatio
         ))
 
+        print("[GemmaAgent] Prompt:\n\(prompt)")
         let response = try await session.sendMessage(prompt)
+        print("[GemmaAgent] Raw response:\n\(response)")
 
         guard let answerJSON = parseAnswer(from: response) else {
             throw AgentError.malformedResponse(response)

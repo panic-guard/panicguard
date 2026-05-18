@@ -13,6 +13,7 @@ final class GemmaAgentIntegrationTests: XCTestCase {
 
     private var modelPath: String!
     private var store: MockUserProfileStoreForIntegration!
+    private var storeWithVocalBaseline: MockProfileStoreWithVocalBaseline!
 
     override func setUp() async throws {
         #if targetEnvironment(simulator)
@@ -24,6 +25,7 @@ final class GemmaAgentIntegrationTests: XCTestCase {
         }
         modelPath = bundled
         store = MockUserProfileStoreForIntegration()
+        storeWithVocalBaseline = MockProfileStoreWithVocalBaseline()
     }
 
     // MARK: - Strong panic signal: high HR + stationary + failed anchor
@@ -136,6 +138,95 @@ final class GemmaAgentIntegrationTests: XCTestCase {
         XCTAssertLessThan(result.likelihoodPanic, 0.4,
             "Near-baseline HR + flat slope + successful anchor should produce very low panic likelihood")
     }
+
+    // MARK: - Cross-case: HR normal + vocal failed (new rule)
+    //
+    // New reasoning guide rule:
+    //   "within expected range" + sedentary + recognition_failed: true → MODERATE (0.45–0.60)
+    // At minimum this must clear the groundingExercise threshold (0.40) in RuleEngine.
+
+    func test_normalHR_sedentary_failedAnchor_returnsModerateSignal() async throws {
+        let agent = try GemmaAgent(modelPath: modelPath, userProfileStore: store)
+
+        // HR 75 vs baseline 65, sedentary (2 steps/min) → within expected range (75 ≤ 65+25)
+        let features = HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 75, slopeBPMPerMin: 2.0),
+            context: .init(isMoving: false, stepsLast5Min: 10)
+        )
+        let anchor = VocalAnchorResult(
+            targetPhrase: "I am safe and this will pass",
+            transcript: nil  // recognition_failed: true
+        )
+
+        let result = try await agent.runTriage(features: features, vocalAnchor: anchor)
+        printResult(result, label: "normalHR_sedentary_failedAnchor")
+
+        XCTAssertGreaterThanOrEqual(result.likelihoodPanic, 0.40,
+            "Normal HR + failed vocal anchor should reach at least groundingExercise tier — new rule targets 0.45–0.60")
+        XCTAssertLessThan(result.likelihoodPanic, 0.75,
+            "Normal HR should not reach breathingGuide tier (reserved for HIGHER THAN EXPECTED HR cases)")
+    }
+
+    // MARK: - Cross-case: HR normal + significant WPM disruption (new rule)
+    //
+    // New reasoning guide rule:
+    //   "within expected range" + sedentary + speaking rate ≥40% slower → LOW-MODERATE (0.35–0.50)
+    // Uses a profile with baseline vocal metrics so the WPM comparison appears in the prompt.
+
+    func test_normalHR_sedentary_significantWPMDisruption_returnsModerateSignal() async throws {
+        let agent = try GemmaAgent(modelPath: modelPath, userProfileStore: storeWithVocalBaseline)
+
+        let features = HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 75, slopeBPMPerMin: 2.0),
+            context: .init(isMoving: false, stepsLast5Min: 10)
+        )
+        // WPM 70 vs baseline 140 → 50% of baseline (50% slower → significant disruption label)
+        let vocalMetrics = VocalMetrics(
+            speakingRateWPM: 70, maxPauseSeconds: 0.9,
+            meanPauseSeconds: 0.4, totalPauseSeconds: 2.5, durationSeconds: 18.0
+        )
+        let anchor = VocalAnchorResult(
+            targetPhrase: "I am safe and this will pass",
+            transcript: "i am safe and this will pass",
+            vocalMetrics: vocalMetrics
+        )
+
+        let result = try await agent.runTriage(features: features, vocalAnchor: anchor)
+        printResult(result, label: "normalHR_sedentary_significantWPMDisruption")
+
+        XCTAssertGreaterThanOrEqual(result.likelihoodPanic, 0.30,
+            "Normal HR + WPM 50% of baseline (significant disruption) should register meaningful signal — new rule targets 0.35–0.50")
+        XCTAssertLessThan(result.likelihoodPanic, 0.70,
+            "Vocal disruption alone with normal HR should not reach breathingGuide tier")
+    }
+
+    // MARK: - Regression: HR normal + clean vocal must stay low
+
+    func test_normalHR_sedentary_cleanVocal_remainsLow() async throws {
+        let agent = try GemmaAgent(modelPath: modelPath, userProfileStore: storeWithVocalBaseline)
+
+        let features = HRFeaturePayload(
+            currentHRMetrics: .init(meanBPM: 75, slopeBPMPerMin: 2.0),
+            context: .init(isMoving: false, stepsLast5Min: 10)
+        )
+        // WPM 138 vs baseline 140 → 98% of baseline (similar to baseline label)
+        let vocalMetrics = VocalMetrics(
+            speakingRateWPM: 138, maxPauseSeconds: 0.22,
+            meanPauseSeconds: 0.11, totalPauseSeconds: 0.4, durationSeconds: 6.5
+        )
+        let anchor = VocalAnchorResult(
+            targetPhrase: "I am safe and this will pass",
+            transcript: "I am safe and this will pass",
+            vocalMetrics: vocalMetrics
+        )
+
+        let result = try await agent.runTriage(features: features, vocalAnchor: anchor)
+        printResult(result, label: "normalHR_sedentary_cleanVocal")
+
+        // New rules must not fire — calm scenario stays calm.
+        XCTAssertLessThan(result.likelihoodPanic, 0.40,
+            "Normal HR + clean vocal (similar WPM to baseline) must not trigger any intervention")
+    }
 }
 
 // MARK: - Helpers
@@ -154,5 +245,20 @@ private final class MockUserProfileStoreForIntegration: UserProfileStoring {
     func save(_ profile: UserProfile) throws {}
     func load() throws -> UserProfile {
         UserProfile(age: 28, baselineHR: 65, emergencyContactEnabled: false)
+    }
+}
+
+/// Profile store that includes a calm-state vocal baseline (WPM 140, short pauses).
+/// Required for tests that verify "speaking rate vs baseline" comparison appears in the prompt.
+private final class MockProfileStoreWithVocalBaseline: UserProfileStoring {
+    func save(_ profile: UserProfile) throws {}
+    func load() throws -> UserProfile {
+        let vocalBaseline = VocalMetrics(
+            speakingRateWPM: 140, maxPauseSeconds: 0.25,
+            meanPauseSeconds: 0.12, totalPauseSeconds: 0.5, durationSeconds: 6.0
+        )
+        return UserProfile(age: 28, baselineHR: 65,
+                           baselineVocalMetrics: vocalBaseline,
+                           emergencyContactEnabled: false)
     }
 }
