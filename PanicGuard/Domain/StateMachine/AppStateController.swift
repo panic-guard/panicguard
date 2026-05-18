@@ -24,6 +24,13 @@ final class AppStateController: ObservableObject {
     private var triageTask: Task<Void, Never>?
     private var pendingFeatures: HRFeaturePayload?
 
+    // MARK: - Demo mode state (set by startDemo / startCustomDemo, cleared after use)
+
+    var pendingDemoResult: TriageResult? = nil
+    var demoAnchor: VocalAnchorResult? = nil
+    var demoPromptText: String? = nil
+    var demoHRSummary: (bpm: Double, slope: Double)? = nil
+
     // MARK: - Watching state (polling only while in .watching)
 
     private var watchingTask: Task<Void, Never>?
@@ -136,6 +143,41 @@ final class AppStateController: ObservableObject {
         launchTriageTask(anchor: anchor)
     }
 
+    // MARK: - Demo mode entry points
+
+    /// Fixed scenario: all inputs hardcoded, LLM bypassed, prompt shown for 5 s.
+    func startDemo(_ scenario: FixedScenario) {
+        let profile = UserProfile(
+            age: 28,
+            baselineHR: scenario.baselineHR,
+            baselineVocalMetrics: scenario.baselineVocalMetrics,
+            emergencyContactEnabled: true,
+            emergencyContactPhone: "01012345678"
+        )
+        let riskRatio = scenario.hrFeatures.currentHRMetrics.meanBPM / scenario.baselineHR
+        demoPromptText = GemmaAgentPrompts.triagePrompt(context: .init(
+            features: scenario.hrFeatures,
+            anchor: scenario.vocalAnchorResult,
+            profile: profile,
+            riskRatio: riskRatio
+        ))
+        pendingDemoResult = scenario.triageResult
+        demoAnchor = scenario.vocalAnchorResult
+        demoHRSummary = (scenario.hrFeatures.currentHRMetrics.meanBPM,
+                         scenario.hrFeatures.currentHRMetrics.slopeBPMPerMin)
+        setPendingFeatures(scenario.hrFeatures)
+        state = .activeTriage
+    }
+
+    /// Custom scenario: real mic + real LLM. Profile must be saved to profileStore before calling.
+    func startCustomDemo(hrFeatures: HRFeaturePayload) {
+        demoHRSummary = (hrFeatures.currentHRMetrics.meanBPM,
+                         hrFeatures.currentHRMetrics.slopeBPMPerMin)
+        setPendingFeatures(hrFeatures)
+        state = .activeTriage
+        beginTriage()
+    }
+
     // MARK: - Triage lifecycle
 
     /// Creates the agent and starts warming up the LLM session during silentInvitation.
@@ -153,6 +195,7 @@ final class AppStateController: ObservableObject {
     /// Ensures the agent exists when entering activeTriage (fallback if preload wasn't triggered).
     /// Also kicks off preload() so the model starts loading while the user records the vocal anchor.
     private func beginTriage() {
+        guard pendingDemoResult == nil else { return }  // Fixed demo: agent not needed.
         guard triageAgent == nil else { return }
         do {
             triageAgent = try agentFactory()
@@ -164,6 +207,16 @@ final class AppStateController: ObservableObject {
 
     /// Starts the async triage task once the vocal anchor is available.
     private func launchTriageTask(anchor: VocalAnchorResult) {
+        // Fixed demo: bypass LLM, display prompt for 5 s then deliver pre-defined result.
+        if let demoResult = pendingDemoResult {
+            pendingDemoResult = nil
+            triageTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                guard !Task.isCancelled else { return }
+                await MainActor.run { self?.send(.triageComplete(demoResult)) }
+            }
+            return
+        }
         guard let agent = triageAgent else { send(.resetToIdle); return }
         let features = pendingFeatures ?? HRFeaturePayload(
             currentHRMetrics: .init(meanBPM: 0, slopeBPMPerMin: 0),
@@ -186,6 +239,10 @@ final class AppStateController: ObservableObject {
         triageTask = nil
         triageAgent = nil  // Releases LlmInference → model memory freed.
         pendingFeatures = nil
+        pendingDemoResult = nil
+        demoAnchor = nil
+        demoPromptText = nil
+        demoHRSummary = nil
     }
 
     /// Polls HealthKit every 30 s while in .watching; transitions to .silentInvitation

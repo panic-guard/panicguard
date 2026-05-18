@@ -13,6 +13,7 @@ struct OnboardingView: View {
     @State private var ecEnabled = false
     @State private var ecPhone = ""
     @State private var isRequestingPermissions = false
+    @State private var showDemoSheet = false
 
     private enum OnboardingStep { case welcome, profile, vocalCalibration }
 
@@ -30,6 +31,8 @@ struct OnboardingView: View {
                             step = .profile
                         }
                     }
+                } onDemo: {
+                    showDemoSheet = true
                 }
             case .profile:
                 ProfileStepView(age: $age, ecEnabled: $ecEnabled, ecPhone: $ecPhone) {
@@ -44,6 +47,9 @@ struct OnboardingView: View {
                     controller.send(.onboardingComplete)
                 }
             }
+        }
+        .sheet(isPresented: $showDemoSheet) {
+            DemoScenarioPickerView()
         }
     }
 
@@ -89,6 +95,7 @@ struct OnboardingView: View {
 private struct WelcomeStepView: View {
     let isLoading: Bool
     let onContinue: () -> Void
+    let onDemo: () -> Void
 
     @State private var pulseScale: CGFloat = 1.0
     @State private var opacity: Double = 0
@@ -152,6 +159,12 @@ private struct WelcomeStepView: View {
             }
             .disabled(isLoading)
             .padding(.horizontal, 40)
+
+            Button(action: onDemo) {
+                Text("Try Demo Mode")
+                    .font(.subheadline)
+                    .foregroundColor(Color.teal.opacity(0.75))
+            }
             .padding(.bottom, 56)
         }
         .opacity(opacity)
@@ -488,5 +501,327 @@ private struct VocalCalibrationView: View {
             emergencyContactPhone: emergencyContactPhone
         )
         try? store.save(profile)
+    }
+}
+
+// MARK: - Demo Scenario Picker
+
+private struct DemoScenarioPickerView: View {
+    @EnvironmentObject var controller: AppStateController
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var showCustomSetup = false
+    @State private var opacity: Double = 0
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header
+                    VStack(spacing: 8) {
+                        Text("Demo Mode")
+                            .font(.title2).fontWeight(.light).foregroundColor(.white)
+                        Text("Select a scenario to experience the full flow")
+                            .font(.caption).foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, 60)
+                    .padding(.bottom, 32)
+
+                    // Fixed scenarios
+                    VStack(spacing: 12) {
+                        ForEach(FixedScenario.all) { scenario in
+                            FixedScenarioCard(scenario: scenario) {
+                                dismiss()
+                                controller.startDemo(scenario)
+                            }
+                        }
+
+                        // Custom scenario card
+                        CustomScenarioCard {
+                            showCustomSetup = true
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 40)
+                }
+            }
+        }
+        .opacity(opacity)
+        .onAppear { withAnimation(.easeIn(duration: 0.4)) { opacity = 1 } }
+        .sheet(isPresented: $showCustomSetup) {
+            CustomScenarioSetupView()
+        }
+    }
+}
+
+private struct FixedScenarioCard: View {
+    let scenario: FixedScenario
+    let onTap: () -> Void
+
+    private var outcomePillColor: Color {
+        switch scenario.id {
+        case "acutePanic":      return .red.opacity(0.8)
+        case "moderatePanic":   return .orange.opacity(0.8)
+        case "mildAnxiety":     return .yellow.opacity(0.7)
+        case "physicalAnomaly": return .purple.opacity(0.8)
+        default:                return .teal
+        }
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(scenario.title)
+                        .font(.body).fontWeight(.medium).foregroundColor(.white)
+                    Text(scenario.description)
+                        .font(.caption).foregroundColor(.gray)
+                }
+
+                Spacer()
+
+                Text(scenario.outcomeLabel)
+                    .font(.caption2).fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(outcomePillColor)
+                    .cornerRadius(6)
+            }
+            .padding(16)
+            .background(Color.white.opacity(0.06))
+            .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct CustomScenarioCard: View {
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Try Your Own")
+                        .font(.body).fontWeight(.medium).foregroundColor(.white)
+                    Text("Enter BPM · Record your voice · Real AI inference")
+                        .font(.caption).foregroundColor(.gray)
+                }
+
+                Spacer()
+
+                Text("Custom")
+                    .font(.caption2).fontWeight(.semibold)
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(Color.teal)
+                    .cornerRadius(6)
+            }
+            .padding(16)
+            .background(Color.white.opacity(0.06))
+            .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Custom Scenario Setup (BPM input + calibration + triage)
+
+private struct CustomScenarioSetupView: View {
+    @EnvironmentObject var controller: AppStateController
+    @Environment(\.dismiss) private var dismiss
+
+    private enum SetupStep { case input, calibrating, done }
+
+    @State private var step: SetupStep = .input
+    @State private var bpm: Double = 120
+    @State private var activity: DemoActivity = .resting
+    @State private var opacity: Double = 0
+
+    private let store = UserProfileStore()
+    private let vocalAnchorManager = VocalAnchorManager()
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            switch step {
+            case .input:   inputView
+            case .calibrating: calibrationView
+            case .done:    EmptyView()
+            }
+        }
+        .opacity(opacity)
+        .onAppear { withAnimation(.easeIn(duration: 0.4)) { opacity = 1 } }
+    }
+
+    // MARK: BPM + Activity input
+
+    private var inputView: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 8) {
+                Text("Your Scenario")
+                    .font(.title2).fontWeight(.light).foregroundColor(.white)
+                Text("Set the heart rate context")
+                    .font(.caption).foregroundColor(.gray)
+            }
+
+            Spacer().frame(height: 40)
+
+            VStack(spacing: 0) {
+                // BPM slider
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Heart Rate")
+                            .font(.body).foregroundColor(.white)
+                        Spacer()
+                        Text("\(Int(bpm)) BPM")
+                            .font(.system(size: 28, weight: .thin, design: .rounded))
+                            .foregroundColor(.teal)
+                    }
+                    Slider(value: $bpm, in: 60...180, step: 1)
+                        .tint(.teal)
+                }
+                .padding(.horizontal, 20).padding(.vertical, 16)
+
+                Divider().background(Color.white.opacity(0.08))
+
+                // Activity picker
+                HStack {
+                    Text("Activity")
+                        .font(.body).foregroundColor(.white)
+                    Spacer()
+                    Picker("", selection: $activity) {
+                        ForEach(DemoActivity.allCases, id: \.self) { a in
+                            Text(a.rawValue).tag(a)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(.teal)
+                }
+                .padding(.horizontal, 20).padding(.vertical, 16)
+            }
+            .background(Color.white.opacity(0.06))
+            .cornerRadius(12)
+            .padding(.horizontal, 16)
+
+            Spacer()
+
+            Button {
+                step = .calibrating
+            } label: {
+                Text("Next — Voice Baseline")
+                    .font(.body).fontWeight(.medium).foregroundColor(.black)
+                    .frame(maxWidth: .infinity).padding(.vertical, 18)
+                    .background(Color.teal).cornerRadius(16)
+            }
+            .padding(.horizontal, 40).padding(.bottom, 56)
+        }
+    }
+
+    // MARK: Calibration (15-second real recording for baseline)
+
+    @State private var calibPhase: CalibPhase = .idle
+    @State private var ringScale: CGFloat = 1.0
+    @State private var dotPhase: Int = 0
+    @State private var calibTask: Task<Void, Never>?
+
+    private enum CalibPhase { case idle, recording, done }
+    private static let calibPhrase = "The sky is wide and open."
+
+    private var calibrationView: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 24) {
+                Text("Voice Baseline")
+                    .font(.title2).fontWeight(.light).foregroundColor(.white)
+
+                Text(calibPhase == .done ? "Baseline saved" : "Read this calmly")
+                    .font(.caption).foregroundColor(.gray)
+                    .animation(.easeInOut(duration: 0.3), value: calibPhase)
+
+                if calibPhase != .done {
+                    Text(Self.calibPhrase)
+                        .font(.title3).fontWeight(.light).foregroundColor(.white)
+                        .multilineTextAlignment(.center).padding(.horizontal, 40)
+                }
+            }
+
+            Spacer()
+
+            if calibPhase != .done {
+                calibButton.padding(.bottom, 16)
+
+                Text(calibPhase == .recording ? String(repeating: "•", count: dotPhase + 1) : " ")
+                    .font(.caption2).foregroundColor(Color.teal.opacity(0.4))
+                    .animation(.easeInOut(duration: 0.3), value: dotPhase)
+                    .frame(height: 16)
+            }
+
+            Spacer().frame(height: 56)
+        }
+        .task(id: calibPhase == .recording) {
+            guard calibPhase == .recording else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                dotPhase = (dotPhase + 1) % 3
+            }
+        }
+    }
+
+    @ViewBuilder private var calibButton: some View {
+        switch calibPhase {
+        case .idle:
+            Button(action: startCalibration) {
+                ZStack {
+                    Circle().stroke(Color.white.opacity(0.15), lineWidth: 3).frame(width: 80, height: 80)
+                    Circle().fill(Color.red.opacity(0.85)).frame(width: 62, height: 62)
+                }
+            }.buttonStyle(.plain)
+
+        case .recording:
+            Button(action: stopCalibration) {
+                ZStack {
+                    Circle().stroke(Color.red.opacity(0.5), lineWidth: 3).frame(width: 80, height: 80)
+                        .scaleEffect(ringScale)
+                        .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: ringScale)
+                    RoundedRectangle(cornerRadius: 6).fill(Color.red.opacity(0.85)).frame(width: 26, height: 26)
+                }
+            }.buttonStyle(.plain).onAppear { ringScale = 1.12 }
+
+        case .done:
+            EmptyView()
+        }
+    }
+
+    private func startCalibration() {
+        calibPhase = .recording
+        calibTask = Task {
+            let anchor = try? await vocalAnchorManager.captureAnchor(phrase: Self.calibPhrase, timeout: 15)
+            guard !Task.isCancelled else { return }
+            let profile = UserProfile(
+                age: 28,
+                baselineHR: 70,
+                baselineVocalMetrics: anchor?.vocalMetrics
+            )
+            try? store.save(profile)
+            await MainActor.run { withAnimation { calibPhase = .done } }
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                dismiss()
+                controller.startCustomDemo(hrFeatures: activity.hrFeatures(bpm: bpm))
+            }
+        }
+    }
+
+    private func stopCalibration() {
+        vocalAnchorManager.stopRecordingEarly()
+        withAnimation { calibPhase = .done }
     }
 }

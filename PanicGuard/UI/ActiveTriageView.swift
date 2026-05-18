@@ -23,6 +23,11 @@ struct ActiveTriageView: View {
     @State private var recordingTask: Task<Void, Never>?
     @State private var anchorSent = false
 
+    // Demo mode state — captured once on appear, never changes mid-session
+    @State private var isDemoFixed = false
+    @State private var demoBPM: Double = 0
+    @State private var demoSlope: Double = 0
+
     private var captionText: String {
         switch recordingPhase {
         case .idle:      return "Take your time"
@@ -41,6 +46,20 @@ struct ActiveTriageView: View {
             Color(red: 0.05, green: 0.05, blue: 0.10).ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // Demo badge — fixed scenario only
+                if isDemoFixed {
+                    HStack(spacing: 8) {
+                        Text("DEMO")
+                            .font(.caption2).fontWeight(.bold)
+                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .background(Color.teal).foregroundColor(.black)
+                            .cornerRadius(6)
+                        Text("\(Int(demoBPM)) BPM · +\(Int(demoSlope))/min")
+                            .font(.caption2).foregroundColor(Color.teal.opacity(0.7))
+                    }
+                    .padding(.top, 60)
+                }
+
                 Spacer()
 
                 // Phrase — always visible
@@ -79,12 +98,44 @@ struct ActiveTriageView: View {
                     .animation(.easeInOut(duration: 0.3), value: dotPhase)
                     .frame(height: 16)
 
+                // Fixed demo: show actual Gemma prompt while waiting 5 s
+                if isDemoFixed, recordingPhase == .done, let prompt = controller.demoPromptText {
+                    ScrollView {
+                        Text(prompt)
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundColor(Color.teal.opacity(0.65))
+                            .padding(12)
+                    }
+                    .frame(maxHeight: 260)
+                    .background(Color.white.opacity(0.04))
+                    .cornerRadius(10)
+                    .padding(.horizontal, 20)
+                    .transition(.opacity)
+                }
+
                 Spacer().frame(height: 48)
             }
             .opacity(contentOpacity)
             .animation(.easeIn(duration: 0.8), value: contentOpacity)
         }
-        .onAppear { contentOpacity = 1 }
+        .onAppear {
+            contentOpacity = 1
+            // Fixed demo: capture HR summary and auto-deliver anchor after 1.5 s
+            if let anchor = controller.demoAnchor,
+               let summary = controller.demoHRSummary {
+                isDemoFixed = true
+                demoBPM = summary.bpm
+                demoSlope = summary.slope
+                controller.demoAnchor = nil
+                Task {
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    await MainActor.run {
+                        withAnimation(.easeOut(duration: 0.4)) { recordingPhase = .done }
+                        deliverAnchor(anchor)
+                    }
+                }
+            }
+        }
         .task(id: recordingPhase) {
             guard recordingPhase != .idle else { return }
             while !Task.isCancelled {
