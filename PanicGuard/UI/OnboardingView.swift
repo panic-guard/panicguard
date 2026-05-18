@@ -1,5 +1,9 @@
 import SwiftUI
 import HealthKit
+import AVFoundation
+#if canImport(Speech)
+import Speech
+#endif
 
 struct OnboardingView: View {
     @EnvironmentObject var controller: AppStateController
@@ -8,6 +12,7 @@ struct OnboardingView: View {
     @State private var age: Int = 25
     @State private var ecEnabled = false
     @State private var ecPhone = ""
+    @State private var isRequestingPermissions = false
 
     private enum OnboardingStep { case welcome, profile, vocalCalibration }
 
@@ -16,7 +21,16 @@ struct OnboardingView: View {
             Color.black.ignoresSafeArea()
             switch step {
             case .welcome:
-                WelcomeStepView { step = .profile }
+                WelcomeStepView(isLoading: isRequestingPermissions) {
+                    isRequestingPermissions = true
+                    Task {
+                        await requestAllPermissions()
+                        await MainActor.run {
+                            isRequestingPermissions = false
+                            step = .profile
+                        }
+                    }
+                }
             case .profile:
                 ProfileStepView(age: $age, ecEnabled: $ecEnabled, ecPhone: $ecPhone) {
                     step = .vocalCalibration
@@ -31,25 +45,49 @@ struct OnboardingView: View {
                 }
             }
         }
-        .task { age = (await fetchAgeFromHealthKit()) ?? 25 }
     }
 
-    private func fetchAgeFromHealthKit() async -> Int? {
-        let store = HKHealthStore()
-        guard HKHealthStore.isHealthDataAvailable() else { return nil }
-        let dobType = HKCharacteristicType(.dateOfBirth)
-        try? await store.requestAuthorization(toShare: [], read: [dobType])
-        guard let components = try? store.dateOfBirthComponents(),
-              let year = components.year else { return nil }
-        let currentYear = Calendar.current.component(.year, from: Date())
-        let calculated = currentYear - year
-        return (10...99).contains(calculated) ? calculated : nil
+    // Requests all required permissions upfront in one pass:
+    // 1 HealthKit sheet (DOB + HR + steps + energy + workout + restingHR)
+    // then Speech recognition, then microphone — each their own system dialog.
+    private func requestAllPermissions() async {
+        if HKHealthStore.isHealthDataAvailable() {
+            let store = HKHealthStore()
+            var readTypes: Set<HKObjectType> = [
+                HKCharacteristicType(.dateOfBirth),
+                HKWorkoutType.workoutType(),
+                HKQuantityType(.restingHeartRate)
+            ]
+            if let t = HKQuantityType.quantityType(forIdentifier: .heartRate) { readTypes.insert(t) }
+            if let t = HKQuantityType.quantityType(forIdentifier: .stepCount) { readTypes.insert(t) }
+            if let t = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) { readTypes.insert(t) }
+            try? await store.requestAuthorization(toShare: [], read: readTypes)
+
+            if let components = try? store.dateOfBirthComponents(), let year = components.year {
+                let calculated = Calendar.current.component(.year, from: Date()) - year
+                if (10...99).contains(calculated) {
+                    await MainActor.run { age = calculated }
+                }
+            }
+        }
+
+        #if canImport(Speech)
+        if SFSpeechRecognizer.authorizationStatus() == .notDetermined {
+            await withCheckedContinuation { cont in
+                SFSpeechRecognizer.requestAuthorization { _ in cont.resume() }
+            }
+        }
+        if AVAudioApplication.shared.recordPermission == .undetermined {
+            _ = await AVAudioApplication.requestRecordPermission()
+        }
+        #endif
     }
 }
 
 // MARK: - Welcome Step
 
 private struct WelcomeStepView: View {
+    let isLoading: Bool
     let onContinue: () -> Void
 
     @State private var pulseScale: CGFloat = 1.0
@@ -95,15 +133,24 @@ private struct WelcomeStepView: View {
             Spacer()
 
             Button(action: onContinue) {
-                Text("Get started")
-                    .font(.body)
-                    .fontWeight(.medium)
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(Color.teal)
-                    .cornerRadius(16)
+                Group {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.black)
+                    } else {
+                        Text("Get started")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.black)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(Color.teal)
+                .cornerRadius(16)
             }
+            .disabled(isLoading)
             .padding(.horizontal, 40)
             .padding(.bottom, 56)
         }
@@ -410,7 +457,15 @@ private struct VocalCalibrationView: View {
             let hr = await hrPayload
             guard !Task.isCancelled else { return }
 
-            saveProfile(anchor: anchor, hr: hr)
+            // Prefer real-time HR mean; fall back to Apple Watch 30-day resting HR avg before hardcoding 72.
+            let baselineHR: Double
+            if let mean = hr?.currentHRMetrics.meanBPM {
+                baselineHR = mean
+            } else {
+                baselineHR = await hrFetcher.fetchRestingHR() ?? 72.0
+            }
+
+            saveProfile(anchor: anchor, baselineHR: baselineHR)
             await MainActor.run { withAnimation { phase = .done } }
             try? await Task.sleep(nanoseconds: 800_000_000)
             guard !Task.isCancelled else { return }
@@ -419,20 +474,15 @@ private struct VocalCalibrationView: View {
     }
 
     private func stopCalibration() {
-        calibrationTask?.cancel()
-        calibrationTask = nil
-        saveProfile(anchor: nil, hr: nil)
+        // Stop recorder early — calibrationTask continues, recognizes partial audio, then calls onComplete.
+        vocalAnchorManager.stopRecordingEarly()
         withAnimation { phase = .done }
-        Task {
-            try? await Task.sleep(nanoseconds: 800_000_000)
-            onComplete()
-        }
     }
 
-    private func saveProfile(anchor: VocalAnchorResult?, hr: HRFeaturePayload?) {
+    private func saveProfile(anchor: VocalAnchorResult?, baselineHR: Double) {
         let profile = UserProfile(
             age: age,
-            baselineHR: hr?.currentHRMetrics.meanBPM ?? 72.0,
+            baselineHR: baselineHR,
             baselineVocalMetrics: anchor?.vocalMetrics,
             emergencyContactEnabled: emergencyContactEnabled,
             emergencyContactPhone: emergencyContactPhone

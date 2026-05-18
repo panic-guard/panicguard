@@ -42,7 +42,7 @@ private struct FakeHRFetcher: HRFetching {
 
 private final class FakeWatchingGuard: WatchingGuardProtocol {
     var shouldElevate = false
-    func isSustainedElevation(hrSamples: [Double], baseline: Double, stepCount: Int) -> Bool {
+    func isSustainedElevation(hrSamples: [Double], baseline: Double, stepCount: Int, activeEnergyKcal: Double, hasActiveWorkout: Bool) -> Bool {
         shouldElevate
     }
 }

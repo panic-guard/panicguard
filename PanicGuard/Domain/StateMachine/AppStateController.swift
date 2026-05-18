@@ -202,7 +202,9 @@ final class AppStateController: ObservableObject {
                     let elevated = self.watchingGuard.isSustainedElevation(
                         hrSamples: samples,
                         baseline: baseline,
-                        stepCount: payload.context.stepsLast5Min
+                        stepCount: payload.context.stepsLast5Min,
+                        activeEnergyKcal: payload.context.activeEnergyKcal,
+                        hasActiveWorkout: payload.context.hasActiveWorkout
                     )
                     if elevated {
                         self.send(.elevationSustained)

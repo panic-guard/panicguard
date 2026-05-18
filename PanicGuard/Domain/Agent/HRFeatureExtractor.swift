@@ -4,12 +4,13 @@ final class HRFeatureExtractor: HRFeatureExtracting {
 
     private static let sampleIntervalSeconds = 5.0  // assumed HealthKit HR sampling interval
 
-    func extract(hrSamples: [Double], stepCount: Int) -> HRFeaturePayload {
+    func extract(hrSamples: [Double], stepCount: Int, activeEnergyKcal: Double, hasActiveWorkout: Bool) -> HRFeaturePayload {
         let mean = hrSamples.isEmpty ? 0 : hrSamples.reduce(0, +) / Double(hrSamples.count)
         let slope = Self.linearSlopeBPMPerMin(hrSamples)
+        let isMoving = stepCount > 30 || activeEnergyKcal >= 3.0 || hasActiveWorkout
         return HRFeaturePayload(
             currentHRMetrics: .init(meanBPM: mean, slopeBPMPerMin: slope),
-            context: .init(isMoving: stepCount > 30, stepsLast5Min: stepCount)
+            context: .init(isMoving: isMoving, stepsLast5Min: stepCount, activeEnergyKcal: activeEnergyKcal, hasActiveWorkout: hasActiveWorkout)
         )
     }
 

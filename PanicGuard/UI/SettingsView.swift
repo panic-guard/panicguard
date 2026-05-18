@@ -14,6 +14,11 @@ struct SettingsView: View {
     @State private var emergencyContactPhone = ""
     @FocusState private var phoneFieldFocused: Bool
 
+    // Baseline HR recalibration
+    @State private var isRecalculating = false
+    @State private var recalculatedFromWatch = false
+    private let hrFetcher = iPhoneHRFetcher()
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -49,20 +54,32 @@ struct SettingsView: View {
 
                             divider()
 
-                            // Baseline HR row (read-only — set during onboarding calibration)
+                            // Baseline HR row — recalculatable from Apple Watch resting HR history
                             HStack {
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text("Baseline Heart Rate")
                                         .font(.body)
                                         .foregroundColor(.white)
-                                    Text("Measured during onboarding")
+                                    Text(recalculatedFromWatch ? "Updated from Apple Watch" : "Measured during onboarding")
                                         .font(.caption)
                                         .foregroundColor(Color.gray.opacity(0.5))
                                 }
                                 Spacer()
-                                Text("\(Int(baselineHR)) BPM")
-                                    .font(.body.monospacedDigit())
-                                    .foregroundColor(Color.gray.opacity(0.55))
+                                if isRecalculating {
+                                    ProgressView()
+                                        .tint(.teal)
+                                } else {
+                                    HStack(spacing: 12) {
+                                        Text("\(Int(baselineHR)) BPM")
+                                            .font(.body.monospacedDigit())
+                                            .foregroundColor(Color.gray.opacity(0.55))
+                                        Button("Recalculate") {
+                                            Task { await recalculateBaseline() }
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(.teal)
+                                    }
+                                }
                             }
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
@@ -195,6 +212,23 @@ struct SettingsView: View {
         baselineHR = profile.baselineHR
         emergencyContactEnabled = profile.emergencyContactEnabled
         emergencyContactPhone = profile.emergencyContactPhone ?? ""
+    }
+
+    private func recalculateBaseline() async {
+        isRecalculating = true
+        defer { isRecalculating = false }
+        guard let hr = await hrFetcher.fetchRestingHR() else { return }
+        baselineHR = hr
+        recalculatedFromWatch = true
+        guard let current = try? store.load() else { return }
+        let updated = UserProfile(
+            age: current.age,
+            baselineHR: hr,
+            baselineVocalMetrics: current.baselineVocalMetrics,
+            emergencyContactEnabled: current.emergencyContactEnabled,
+            emergencyContactPhone: current.emergencyContactPhone
+        )
+        try? store.save(updated)
     }
 
     private func saveAndDismiss() {

@@ -10,7 +10,16 @@ protocol VocalAnchorManaging {
 
 final class VocalAnchorManager: VocalAnchorManaging {
 
+    // Held so stopRecordingEarly() can interrupt an in-progress recording.
+    // AVAudioRecorder.stop() is documented as safe to call from any thread.
+    private var activeRecorder: AVAudioRecorder?
+
     // MARK: - Public interface
+
+    /// Stops the current recording immediately; recognition runs on whatever was captured so far.
+    func stopRecordingEarly() {
+        activeRecorder?.stop()
+    }
 
     /// Records audio for `timeout` seconds, then runs on-device speech recognition on the file.
     func captureAnchor(phrase: String, timeout: TimeInterval) async throws -> VocalAnchorResult {
@@ -25,14 +34,15 @@ final class VocalAnchorManager: VocalAnchorManaging {
     /// Runs on-device speech recognition on an audio file URL.
     /// Auth is re-checked here because this method is public and can be called directly (e.g. in tests).
     func recognize(phrase: String, url: URL) async -> VocalAnchorResult {
+        // Phrases are always English — pin to en-US regardless of device locale.
         guard SFSpeechRecognizer.authorizationStatus() == .authorized,
-              let recognizer = SFSpeechRecognizer(), recognizer.isAvailable else {
+              let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")),
+              recognizer.isAvailable else {
             return VocalAnchorResult(targetPhrase: phrase, transcript: nil)
         }
-        recognizer.supportsOnDeviceRecognition = true
 
         let request = SFSpeechURLRecognitionRequest(url: url)
-        request.requiresOnDeviceRecognition = true
+        request.requiresOnDeviceRecognition = recognizer.supportsOnDeviceRecognition
 
         return await withCheckedContinuation { cont in
             var resumed = false
@@ -110,13 +120,20 @@ final class VocalAnchorManager: VocalAnchorManaging {
             try session.setActive(true, options: .notifyOthersOnDeactivation)
 
             let recorder = try AVAudioRecorder(url: url, settings: settings)
-            guard recorder.record() else { return nil }
+            activeRecorder = recorder
+            guard recorder.record() else { activeRecorder = nil; return nil }
 
-            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
-            recorder.stop()
+            // Poll every 200 ms so stopRecordingEarly() takes effect quickly.
+            let deadline = Date().addingTimeInterval(duration)
+            while Date() < deadline && recorder.isRecording && !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 200_000_000)
+            }
+            if recorder.isRecording { recorder.stop() }
+            activeRecorder = nil
             try? session.setActive(false, options: .notifyOthersOnDeactivation)
             return url
         } catch {
+            activeRecorder = nil
             return nil
         }
     }

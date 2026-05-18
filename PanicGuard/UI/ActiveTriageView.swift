@@ -155,10 +155,9 @@ struct ActiveTriageView: View {
     }
 
     private func stopRecording() {
-        recordingTask?.cancel()
-        recordingTask = nil
+        vocalAnchorManager.stopRecordingEarly()
         withAnimation { recordingPhase = .done }
-        deliverAnchor(VocalAnchorResult(targetPhrase: anchorPhrase, transcript: nil))
+        // recordingTask recognizes the partial audio and calls deliverAnchor with the result.
     }
 
     @MainActor

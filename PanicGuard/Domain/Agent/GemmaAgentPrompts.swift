@@ -13,7 +13,10 @@ enum GemmaAgentPrompts {
 
     // MARK: - Pre-computed labels (quantitative reasoning in Swift, not LLM)
 
-    static func activityLabel(stepsPerMin: Int) -> String {
+    static func activityLabel(stepsPerMin: Int, hasActiveWorkout: Bool = false, activeEnergyKcal: Double = 0) -> String {
+        if (hasActiveWorkout || activeEnergyKcal >= 3.0) && stepsPerMin < 10 {
+            return "strength training or non-step exercise (workout detected)"
+        }
         switch stepsPerMin {
         case 0..<10:  return "sedentary (essentially at rest)"
         case 10..<40: return "slow walk"
@@ -82,7 +85,10 @@ enum GemmaAgentPrompts {
     }
 
     /// Returns true if current HR is within physiologically expected range for the given exertion level.
-    static func isHRProportionate(meanBPM: Double, stepsPerMin: Int, baselineHR: Double) -> Bool {
+    static func isHRProportionate(meanBPM: Double, stepsPerMin: Int, baselineHR: Double, hasActiveWorkout: Bool = false, activeEnergyKcal: Double = 0) -> Bool {
+        if hasActiveWorkout || activeEnergyKcal >= 3.0 {
+            return meanBPM <= baselineHR + 85  // full exercise headroom for non-step activity
+        }
         let headroom: Double
         switch stepsPerMin {
         case 0..<10:  headroom = 25   // sedentary: up to +25 BPM is benign
@@ -103,18 +109,23 @@ enum GemmaAgentPrompts {
         let slope = context.features.currentHRMetrics.slopeBPMPerMin
         let stepsPerMin = context.features.context.stepsLast5Min / 5
         let baselineHR = context.profile?.baselineHR ?? 70.0
+        let hasWorkout = context.features.context.hasActiveWorkout
+        let energyKcal = context.features.context.activeEnergyKcal
 
-        let activity = activityLabel(stepsPerMin: stepsPerMin)
+        let activity = activityLabel(stepsPerMin: stepsPerMin, hasActiveWorkout: hasWorkout, activeEnergyKcal: energyKcal)
         let slopeSeverity = slopeLabel(bpmPerMin: slope)
-        let proportionate = isHRProportionate(meanBPM: meanBPM, stepsPerMin: stepsPerMin, baselineHR: baselineHR)
+        let proportionate = isHRProportionate(meanBPM: meanBPM, stepsPerMin: stepsPerMin, baselineHR: baselineHR, hasActiveWorkout: hasWorkout, activeEnergyKcal: energyKcal)
         let hrNote = proportionate
             ? "within expected range for \(activity)"
             : "HIGHER THAN EXPECTED for \(activity) — unexplained elevation"
+        let workoutLine = hasWorkout
+            ? "\n        - Active workout session detected (HKWorkout)"
+            : (energyKcal >= 3.0 ? String(format: "\n        - Caloric expenditure: %.1f kcal in last 5 min — likely non-step exercise", energyKcal) : "")
 
         let hrSection = """
         - Current mean HR: \(Int(meanBPM)) BPM — \(hrNote)
         - HR slope: \(String(format: "%.1f", slope)) BPM/min — \(slopeSeverity)
-        - Activity level: ~\(stepsPerMin) steps/min — \(activity)
+        - Activity level: ~\(stepsPerMin) steps/min — \(activity)\(workoutLine)
         """
 
         let baselineSection: String
@@ -191,6 +202,9 @@ enum GemmaAgentPrompts {
         ## Reasoning Guide
 
         Use the pre-computed labels above:
+
+        Active workout session detected OR caloric expenditure ≥3 kcal/5 min + recognition_failed: false
+        → Non-step exercise (strength training, cycling, rowing). likelihoodPanic should be VERY LOW (< 0.15) even if HR is elevated and step count is near zero.
 
         "within expected range" + gradual or flat slope + recognition_failed: false
         → Strong evidence of normal exercise. likelihoodPanic should be LOW (< 0.3).

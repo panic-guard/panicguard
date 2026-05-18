@@ -11,6 +11,15 @@ struct HRFeaturePayload: Codable, Equatable {
     struct Context: Codable, Equatable {
         let isMoving: Bool
         let stepsLast5Min: Int
+        let activeEnergyKcal: Double   // kcal burned in last 5 min
+        let hasActiveWorkout: Bool     // HKWorkout session present in last 30 min
+
+        init(isMoving: Bool, stepsLast5Min: Int, activeEnergyKcal: Double = 0, hasActiveWorkout: Bool = false) {
+            self.isMoving = isMoving
+            self.stepsLast5Min = stepsLast5Min
+            self.activeEnergyKcal = activeEnergyKcal
+            self.hasActiveWorkout = hasActiveWorkout
+        }
     }
     let currentHRMetrics: HRMetrics
     let context: Context
@@ -54,8 +63,13 @@ struct VocalAnchorResult: Equatable {
 // MARK: - Step 1 protocol
 
 protocol HRFeatureExtracting {
-    /// Converts raw HR + step samples into a symbolic JSON payload.
-    func extract(hrSamples: [Double], stepCount: Int) -> HRFeaturePayload
+    func extract(hrSamples: [Double], stepCount: Int, activeEnergyKcal: Double, hasActiveWorkout: Bool) -> HRFeaturePayload
+}
+
+extension HRFeatureExtracting {
+    func extract(hrSamples: [Double], stepCount: Int) -> HRFeaturePayload {
+        extract(hrSamples: hrSamples, stepCount: stepCount, activeEnergyKcal: 0, hasActiveWorkout: false)
+    }
 }
 
 // MARK: - Step 2 protocol
